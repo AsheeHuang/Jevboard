@@ -1,1 +1,13 @@
+# build output
 bin/
+obj/
+
+# local tooling
+.vs/
+*.user
+*.suo
+*.swp
+Thumbs.db
+
+# runtime data lives in %LOCALAPPDATA%\Jevboard, never in the repo
+*.log

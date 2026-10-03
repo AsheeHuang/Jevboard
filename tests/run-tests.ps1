@@ -1,4 +1,4 @@
-param([switch]$Live)
+param([switch]$Live, [switch]$Whole)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
 $fw = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
@@ -13,5 +13,5 @@ $args += Get-ChildItem (Join-Path $root 'src') -Filter *.cs | ForEach-Object { $
 $args += Get-ChildItem $PSScriptRoot -Filter *.cs | ForEach-Object { $_.FullName }
 & $csc @args
 if ($LASTEXITCODE -ne 0) { throw "csc failed: $LASTEXITCODE" }
-if ($Live) { & $out --live } else { & $out }
+if ($Live) { & $out --live } elseif ($Whole) { & $out --whole } else { & $out }
 exit $LASTEXITCODE

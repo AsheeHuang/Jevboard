@@ -1,85 +1,217 @@
-# Jevboard POC（整句重選版）
+# Jevboard
 
-保留微軟注音。打完一句還沒按 Enter 時雙擊 Caps Lock，Jevboard 會自動打開候選、逐字讀取整句每個位置的真實 IME 候選，一次送出 Jev Choice 請求，浮窗列出「目前／建議」與每一處修改；按「套用」後逐一用 IME 自己的數字鍵選字，整句仍保持未提交。這取代了 [POC_SPEC.md](POC_SPEC.md) 原本「單一位置選字、首版不做整句重寫、不盲送 ↓」的範圍。
+> 讓微軟注音打完的整句，交給 Jev 重新選字。雙擊 Caps Lock 看建議，按 Tab 套用。
 
-## 建置與執行
+Jevboard 是一個 Windows 常駐小工具（概念驗證，POC）。你照常用微軟注音打一句話，還沒按 Enter 之前連按兩下 Caps Lock，它會自動讀取輸入法在每個位置提供的真實候選字，把整句交給 [Jev](https://docs.typesafe.ai/) 判斷哪些同音字選錯了，在游標旁的浮窗列出建議，確認後一鍵套用。不換輸入法、不改系統設定、不記錄按鍵內容。
 
-需要 Windows x64 與內建的 .NET Framework 4.x C# 編譯器，不需安裝套件。
+![Jevboard 浮窗：目前／建議兩行，每處修改一列，數字鍵切換，Tab 套用](docs/overlay-preview.png)
 
-```bash
-powershell -NoProfile -File build.ps1
+```
+你打的：想在去一次芮氏        （輸入法自動轉換的結果）
+建議：  想【再】去一次【瑞士】  （Jev 依整句語意重選，兩處各 86%、98%）
 ```
 
-輸出 `bin\Jevboard.exe`。執行後常駐托盤：右鍵「啟用」切換、「設定…」輸入 Jev API key（遮罩輸入，DPAPI 使用者範圍加密存於 `%LOCALAPPDATA%\Jevboard\key.bin`）、「結束」。日誌 `%LOCALAPPDATA%\Jevboard\jevboard.log` 只記事件、世代序號、候選 id 與機率，不含 key、句子或候選字。
+[English summary](#english-summary) ・ [安裝](#安裝) ・ [使用方式](#使用方式) ・ [運作原理](docs/how-it-works.md) ・ [Prompt 設計](docs/prompt-design.md) ・ [評估結果](docs/evaluation.md)
 
-## 操作
+---
 
-1. 在任何應用程式用微軟注音（中文模式）打一句，不用按 ↓。
-2. 350ms 內連按兩下 Caps Lock，中文或英數模式都可以：若當時是英數模式，程式先解除 Caps Lock 鎖定，仍是英文就送一次 Shift（注音的中英切換鍵），切回中文再開始，結束後就留在中文模式。候選清單沒開時程式自己送 ↓ 並確認清單打開；游標停在英文或標點後面時 ↓ 開不了，就改按 Home 再 ↓ 從第一個字開（沒有組字時這些鍵只會移動游標，程式會按 End 放回行尾並提示「沒有偵測到注音組字」）；接著用 Esc／Home／↓／→ 逐字走過整句，每字讀第 1 頁候選（讀取一頁只用三次跨程序 UIA 呼叫，按鍵之間不等待，約 0.1 秒一字）。空白、標點、英文字母的位置開不了候選，會當成未知字（顯示為全形空白）；正向走到第一個未知字時改從句尾（End）往回按 ←，直到再遇到已讀過的位置，用 ← 的次數算出整句長度，所以句中夾英文或結尾的標點都能正確對位。游標最後停在句尾。
-3. Jev 回應後浮窗顯示「目前」與「建議」兩行：建議句裡會套用的字以藍色標出；有可選替代字但預設不改的位置，原字下方畫琥珀色點狀底線、字後標出列號（例如「羅²」），所以就算建議句與目前句相同也看得出哪些字可以換、該按哪個數字鍵。下面每一處修改一列，前面有數字徽章（第幾字、原字 → 建議字、機率）。按 **Tab**（或點「套用」）逐處套用；Esc（或點「取消」）關閉浮窗、不改字；按 **數字鍵 1–9**（主鍵盤或數字鍵盤）或點該列可切換是否套用那一處，取消的列會變灰並劃掉。Tab、Esc 與數字鍵會被攔下，不傳給輸入法；其他按鍵取消浮窗並照常送出。浮窗外觀可用 `bin\Jevboard.Tests.exe --preview` 以假資料產生 `bin\overlay-preview.png` 檢查，不需要輸入法。
-4. 套用有兩條路。「目前」句子是從編輯器 TextPattern 精確讀到的（Chromium／Electron 等）時，直接 Esc 取消整個組字、把修正後的整句貼上（Ctrl+V），幾乎瞬間完成，但句子會因此定稿、不再是組字，剪貼簿裡原有的文字會在貼上後放回（非文字內容無法保留）。讀不到精確文字時（原生 EDIT）仍逐處重新打開候選、以字找當下的數字鍵送出，整句保持未提交。
-5. 讀取或套用期間任何按鍵、切窗或焦點改變都會中止並撤銷；遲到的 Jev 回應直接丟棄。失焦時輸入法本身會把組字提交，這不是 Jevboard 做的。
+## 目錄
 
-## 給 Jev 的 prompt
+- [功能特色](#功能特色)
+- [English summary](#english-summary)
+- [系統需求](#系統需求)
+- [安裝](#安裝)
+- [使用方式](#使用方式)
+- [運作原理（摘要）](#運作原理摘要)
+- [測試與評估](#測試與評估)
+- [專案結構](#專案結構)
+- [資料、隱私與安全](#資料隱私與安全)
+- [已知限制](#已知限制)
+- [疑難排解](#疑難排解)
+- [專案歷史](#專案歷史)
+- [授權](#授權)
 
-程式碼在 `App.BuildQuestions`（[Program.cs](src/Program.cs)）。一次請求、每個字的位置一題 Choice：
+## 功能特色
 
-- **state**（整個請求共用）：若讀得到游標前已定稿文字就先附上，然後是「使用者正在用注音輸入法打一句台灣繁體中文。注音輸入法只能靠讀音猜字，常把同音的詞選錯。每一題的所有選項讀音完全相同、只有用字不同，請依整句的語意判斷哪一句才是使用者想打的。」**刻意不放目前轉換出來的句子**：放了之後 Jev 會定錨在原句，每題都選一模一樣的版本。
-- **instructions**（每題）：「以下各句只有第 N 個字開始的詞不同（讀音相同）。哪一句語意正確、通順，且用的是台灣常用的詞？不要選簡體字、生僻字或不成詞的組合。」
-- **criteria**（選項）：不是單一個字，而是「把該位置換成某個候選之後的整句」，id 的數字就是該候選在 IME 當頁的順序，`c1` 永遠是輸入法目前的轉換。換出同一句的候選（例如「由於」和「由」）合併成第一個 id，否則會把「維持原句」的機率拆開；注音符號項與超出句尾的詞排除；剩不到兩個選項的位置不出題。
-- **罕見字與簡體字不當替代選項**：實際使用時 Jev 曾建議「喜懽」「公办」。單字替代候選必須在 Big5 常用區（`App.IsCommonHanzi`），所以懽、儗這類異體不會出現；多字詞候選（如「蜚語」「流言蜚語」）允許含次常用字，但整個詞必須在 Big5 內，簡體的 办、发 一律排除（`App.AllowedAlternative`）；輸入法目前的 `c1` 不受此限。代價是不在 Big5 的單字（多為人名用字，如喆、煊）不會被建議。
-- **正反序各問一次**：Jev 對排在第一個的選項有明顯的壓低（「約會要戴保險套」把戴、帶放在第 1、2 格時，第 2 格不管是哪個字都拿 0.9；放在第 2–4 格時才依語意），而「維持原句」又固定在第一個。所以每一題都在同一個請求裡再以反序問一次，兩組機率取平均後才判斷。
-- **解讀**：每個位置機率 ≥ 0.3 的替代字都列成一列（最多 2 列）。只有排第一、機率 ≥ 0.5 且至少是「維持原句」兩倍的那個預設勾選（會套用）；其餘是「可選」列，預設不勾，按該列數字鍵或點它才會改成那個字（例如原字 60%、另一字 40% 時，另一字會顯示但預設不改）。同一位置或範圍重疊的列互斥，勾一個自動取消另一個。觀察到的誤判多落在 0.4–0.55 對 0.4–0.5 之間（遊於、權利、蘿），正確修正多在 0.6 以上。
-- **不猜性別**：你／妳、他／她 之間的互換一律不提議（「我愛你」曾被改成「我愛妳」）；它／牠改成他／她仍允許。
-- **迭代**：一句裡有多個錯字時，各題獨立看會互相牽制（「留言妃與」要先把「與」改成「語」，「蜚語」才說得通）。所以每一輪把接受的修改套進句子後再問一次，最多 3 輪，沒有新修改就停；修改始終以原始組字的位移表示，套用時對得上輸入法的候選。
-- **相鄰兩錯**：「在是一次」這種兩個相鄰的字都錯、各自單獨換都不成句（再是一次／在試一次）的情況，第一輪一個都不會採用。這時多問一題整句比較：選項是原句、各位置最可能的替代字（機率 ≥ 0.15）單獨換、以及相鄰兩個位置一起換（再試一次），以同樣門檻勝出才採用。輸入法以三字以上的詞轉換出來的位置（羅密歐、好好吃、保險套）不進這一題：少量選項的比較會放大模型偏見（曾把羅密歐改成蘿蜜歐），而輸入法詞庫認得的長詞幾乎不會是同音錯字。
+- **保留微軟注音**：不替換輸入法，所有選字最終都是用輸入法自己的候選與數字鍵完成，輸入法的學習照常運作。
+- **整句分析**：自動逐字讀取輸入法在每個位置列出的真實候選（含多字詞），每個位置一題 Choice，一次送出；多個錯字會迭代修正，相鄰兩字同時錯也有對策。
+- **可控的建議**：高把握的修改預設勾選，次要候選列成「可選」預設不改；建議句直接標出哪些字會換、哪些字可以換；數字鍵切換、Tab 套用、Esc 取消。
+- **不搶焦點**：浮窗是不取得焦點的視窗，顯示與點擊都不會離開你正在打字的欄位；任何按鍵、切窗都會立刻取消。
+- **跨應用程式**：已在原生 Win32 編輯框與 Chromium／Electron（Edge、VS Code、Obsidian、Claude 桌面版）驗證；候選窗位置靠 UI Automation 事件取得，不依賴螢幕座標。
+- **靜態可測**：核心邏輯以錄下的候選頁與 Jev 回應格式做單元測試，另附 111 句同音錯誤評估集，可離線量化 prompt 的效果。
 
-評估集 67 句（`tests/JevboardTests.cs` 的 `Cases`）：8 組同音詞各兩個語境（魷魚／由於、權利／權力、公事／公式、意義／異議、終於／忠於、期中／其中、技術／計數、近視／進士）；實際使用中出錯的「我喜歡你」（曾建議懽）、「公事公辦」（曾建議办）、「在再不分」（曾被改成部份）；以及 47 句常見同音錯誤：的／得、在／再、作／做、已／以、須／需、帶／戴、製／制、複／復、練／鍊、歷／曆、訂／定、隻／支、麵／面、進／近、像／象，和整詞選錯（已經／以經、知道／之道、需要／須要、其實／期實、因為／音為、密碼／蜜碼、下載／下在、遊戲／游戲、藥／要、賣／麥…）。另有 44 句「語境決定」的對照：同一組同音字在兩句裡各自正確，只有上下文能分辨（做愛要戴保險套／出門要帶保險套、它該換了／他餓了、三堂課／一顆蘋果、這件事／他是／試試看、像媽媽／向右轉、回覆／恢復／複習、紀念／記得／計畫、經過／精神、爆了／報告、開會／繪畫、問題／提出、買票／漂亮、放鬆／松樹、餅乾／干擾、皇后／之後、見面／吃麵、一座山／請坐、員工／原因／一百元／公園／圓形、項鍊／練習、一億／意義）。正確與錯誤用字的注音讀音含聲調相同，否則輸入法不會列出那個候選。每句各跑兩次：假設輸入法選錯（應該改對）、假設輸入法選對（不該改壞）。另有兩句走完整流程：一句多錯的「留言妃與 → 流言蜚語」測迭代，已經正確的「我愛你你是我的羅密歐」測音譯名與性別猜測（曾被改成「我噯妳你是我的蘿蜜歐」）。
+## English summary
 
-2026-10-03 最新結果（111 句，正反序平均後）：改對 100/111，不改壞 109/111，三句完整流程（留言妃與、羅密歐、在是一次）都 ✓。改壞的兩句：「在再不分 → 在再部分」、「出門要帶保險套 → 戴」（Jev 對「保險套」有「戴」的搭配偏好，看不出「出門」是攜帶的語境；「做愛要戴保險套」「記得戴帽子」「記得帶外套」則都對）。沒改對的多半是兩邊都說得通或模型分不出的字（權利／權力、制度／製度、皇后／皇後、一枝／一支玫瑰、它該換了／他），會以可選列出現。API 每次回答略有浮動，門檻邊緣的句子（恢復、經歷、見面約 0.6）有時只列為可選。已知失敗：「主管有決定預算的權力」（權利／權力各約 0.5，會多提一個可拒絕的建議）、「負責計數」（不會修正）、「在再不分」（這句是在談「在」「再」兩個字本身，不是正常句子；Jev 以 0.83 把「不分」改成「部分」，且不會把第 1 字改成「再」。語言模型靠語意判斷，這類以字為話題的句子它分辨不出來，只能靠使用者按 Esc 拒絕）。前一版 prompt（state 含原句）同樣的 16 句只有 12/16 改對，並且會建議簡體的「由于」。
+**Jevboard** is a Windows tray utility (proof of concept) that keeps Microsoft Bopomofo as the IME and lets [Jev](https://docs.typesafe.ai/) re-pick homophones for a whole uncommitted sentence.
 
-## 測試
+- Type a sentence with Microsoft Bopomofo; before pressing Enter, double-tap **Caps Lock**.
+- Jevboard walks the composition with the IME's own navigation keys and reads, through UI Automation, the real candidate page the IME offers at every character (including multi-character words).
+- It sends one request to the Jev `/v1/systemone` endpoint with one **Choice** question per position. Every option is the full sentence with that position replaced by a candidate, so the model judges sentences rather than bare characters. Each question is also asked with its options reversed and the two distributions are averaged, which cancels a measured first-option bias of the model.
+- Changes that reach ≥ 0.5 probability and at least twice the probability of keeping the sentence are proposed by default; other plausible alternatives are listed switched off. Rounds are iterated while new changes appear, and adjacent-pair variants are tried when nothing passes on its own.
+- A non-activating overlay shows the current and proposed sentences; **Tab** applies, **1–9** toggle a row, **Esc** cancels. Applying either pastes the corrected sentence (when the editor exposes the composition through UIA TextPattern) or re-selects each change with the IME's own digit keys, leaving the composition uncommitted.
+- Requirements: Windows 10/11 x64, Microsoft Bopomofo, the .NET Framework 4.x C# compiler that ships with Windows (no SDK needed), and a Jev API key. Build with `powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1`; run static tests with `tests\run-tests.ps1`, the live 111-sentence evaluation with `tests\run-tests.ps1 -Live`.
+- Status: working POC. Latest evaluation: 100/111 sentences fixed from a wrong homophone, 109/111 left alone when already right. Known weak spots are listed under [已知限制](#已知限制); the design notes in `docs/` are in Chinese.
 
-全部是靜態測試，不操作鍵盤、不碰 IME、不開視窗：
+## 系統需求
 
-```bash
-powershell -NoProfile -File tests\run-tests.ps1
-```
-
-編譯 `src` 與 [tests/JevboardTests.cs](tests/JevboardTests.cs) 成 `bin\Jevboard.Tests.exe`，用錄下的微軟注音候選頁（ㄧㄡˊ ㄩˊ ㄏㄠˇ ㄏㄠˇ ㄔ → 由於好好吃）和 Jev 回應格式的 fixture 驗證：目前句子重建、題目與選項建構（合併、排除注音、id 對應 IME 順序、state 不含原句）、回應解析（id 不在快照、機率無效、缺題）、提案規則（門檻、須高於原句、多字詞覆蓋、同字不算修改）、浮窗建議句的標示。
-
-```bash
-powershell -NoProfile -File tests\run-tests.ps1 -Live
-```
-
-另外用已儲存的 key 跑上面的 16 句評估，走的是程式本身的 `BuildQuestions` 與 `Propose`，所以測的就是正式 prompt。
-
-## 架構
-
-| 檔案 | 模組 |
+| 項目 | 需求 |
 |---|---|
-| `src/Hotkey.cs` | 低階鍵盤 hook：按下／放開狀態排除 auto-repeat，只在適用狀態攔截 Caps Lock，單擊逾時以標記的注入事件重播，浮窗期間攔截 Esc。 |
-| `src/NativeUia.cs` | 最小原生 COM `IUIAutomation` 介面，用來訂閱 StructureChanged 事件（.NET 的 `System.Windows.Automation` 事件包裝遇到 runtimeId 為 null 的事件會丟例外讓程序終止）。 |
-| `src/Candidates.cs` | 以 UIA 事件記住 TextInputHost 候選 CoreWindow 的 HWND（候選窗每次打開都會觸發），備援為游標附近 hit-test；`OpenList` 必要時送 ↓ 並確認清單打開，`Harvest` 逐字走訪讀取候選頁，`Apply` 逐處重開候選並送數字鍵。Esc 只在候選開著時才送（清單沒開時 Esc 會整句取消）。 |
-| `src/JevClient.cs` | 一次請求、多題 Choice（`POST /v1/systemone`，`jev-latest`，timeout 8 秒，不重試）；每題回應 id 不在快照內或機率無效即視為無效。 |
-| `src/Overlay.cs` | `WS_EX_NOACTIVATE` + `MA_NOACTIVATE` 浮窗，只用 Label，顯示、點擊全程不取得焦點。 |
-| `src/Program.cs` | 托盤、設定、世代序號、焦點監看、`BuildQuestions`／`Propose`。 |
+| 作業系統 | Windows 10 / 11，x64（實測 Windows 11 26200） |
+| 輸入法 | 微軟注音（Windows 內建的「微軟注音」，TSF 版） |
+| 執行環境 | .NET Framework 4.8（Windows 10/11 內建） |
+| 建置工具 | Windows 內建的 `csc.exe`（`C:\Windows\Microsoft.NET\Framework64\v4.0.30319`），不需安裝 Visual Studio 或 .NET SDK |
+| 服務 | Jev API key（[申請與文件](https://docs.typesafe.ai/introduction/quickstart)），模型使用 `jev-latest` |
 
-適用狀態判斷：啟用中、前景不是 Jevboard 自己且有焦點視窗、鍵盤配置語言 0x0404、IME 開啟（中文或英數模式皆可）。不符合時 Caps Lock 原樣放行，並在日誌記一行原因（只含視窗 class），例如 `caps lock passed through: IME closed in Chrome_WidgetWin_1`。
+## 安裝
 
-## 本機驗證結果（2026-10-03，Windows 11 26200，真實 Jev key）
+### 1. 取得原始碼並建置
 
-以下是改成靜態測試之前，用鍵盤自動化在本機做過的端對端驗證：
+```bash
+git clone <this-repo-url> Jevboard
+cd Jevboard
+powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
+```
 
-- WinForms 原生 EDIT：「它是我的妹妹」→ 讀取 6 字約 1.3 秒 → Jev 建議第 1 字 它 → 她 → 套用後 host 收到 composition「她是我的妹妹」、result 空、游標在句尾、未按 Enter，前景不變。
-- Edge（Chromium）textarea：同一句，建議 它 → 她，套用後 textarea 顯示底線組字「她是我的妹妹」。Chromium 沒有系統 caret，候選窗完全靠 UIA 事件記住的 HWND 定位。
-- 不按 ↓：「由於好好吃」雙擊後程式自己送 ↓，40ms 內候選窗出現，1.1 秒讀完 5 字。
-- IME 已轉對的句子，Jev 回「沒有建議修改」，組字不動；單擊 Caps Lock 逾時重播、Esc 只關浮窗、缺 key 不呼叫 API、API 失敗不改字。
+成功時會印出 `bin\Jevboard.exe` 的路徑。建置只用到 Windows 內建的編譯器與組件（WinForms、UIAutomationClient、System.Web.Extensions），沒有 NuGet 相依。
+
+### 2. 啟動與設定
+
+1. 執行 `bin\Jevboard.exe`。程式沒有主視窗，只在系統匣（托盤）顯示圖示；第一次執行若出現 SmartScreen 警告，那是因為執行檔未簽章。
+2. 托盤圖示按右鍵 →「設定…」，貼上 Jev API key（輸入時遮罩），勾選「啟用 Caps Lock 雙擊」，按「儲存」。key 以 Windows DPAPI 使用者範圍加密保存，不會寫進日誌。
+3. 托盤選單的「啟用」可以隨時暫停／恢復攔截，「結束」關閉程式。程式只允許一個實例。
+
+### 3. 驗證
+
+1. 開記事本、Edge 或任何可打字的地方，切到微軟注音中文模式。
+2. 打一句含同音字的話，例如 `我想在去一次瑞士`（不要按 Enter）。
+3. 350 ms 內連按兩下 Caps Lock。約一秒內浮窗會出現在候選窗旁邊，列出建議；按 Tab 套用，或 Esc 取消。
+4. 沒有反應時，看 `%LOCALAPPDATA%\Jevboard\jevboard.log` 最後幾行，常見原因寫在[疑難排解](#疑難排解)。
+
+### 4. 開機自動啟動（選用）
+
+按 Win+R 輸入 `shell:startup`，在開啟的資料夾放一個指向 `bin\Jevboard.exe` 的捷徑。
+
+### 5. 更新與移除
+
+- 更新：`git pull` 後重新執行 `build.ps1`，先結束托盤裡的舊實例再啟動新的（執行檔在執行中無法覆寫）。
+- 移除：從托盤「結束」，刪除 repo 目錄，再刪除 `%LOCALAPPDATA%\Jevboard`（key、啟用旗標、日誌都在這裡）。
+
+## 使用方式
+
+| 按鍵 | 時機 | 效果 |
+|---|---|---|
+| Caps Lock 連按兩下 | 組字中（還沒按 Enter） | 開始讀取整句並詢問 Jev |
+| Tab | 浮窗顯示建議時 | 套用所有勾選的修改 |
+| 1–9（主鍵盤或數字鍵盤） | 浮窗顯示建議時 | 切換該列是否套用；同一位置的候選互斥 |
+| Esc | 浮窗顯示時 | 關閉浮窗，不改任何字 |
+| 其他按鍵、切窗、點別處 | 浮窗顯示或讀取中 | 取消本次，按鍵照常送給輸入法 |
+| Caps Lock 單按 | 任何時候 | 350 ms 後照常切換中英（延遲是為了判斷是否雙擊） |
+
+浮窗的讀法：
+
+- **目前**：輸入法目前轉換出來的整句。
+- **建議**：會套用的字以藍底標出；有可選替代字但預設不改的位置，原字下方有琥珀色點狀底線、字後標出列號（例如「依²」），所以即使建議句和目前句相同，也看得出哪些字可以換、該按哪個數字鍵。
+- **每一列**：數字徽章（實心＝會套用、空心＝可選）、第幾字、原字 → 建議字、Jev 給的機率。
+- 標題顯示「Jev 建議修改 N 處，另有 M 個可選」或「Jev 沒有建議修改」。
+
+英數模式也能用：打完英文還留在英數模式時雙擊，程式會先切回中文再開始，結束後停在中文模式。句中夾空白、標點、英文都能正確對位。
+
+## 運作原理（摘要）
+
+```mermaid
+flowchart LR
+    A["打字<br/>微軟注音組字中"] --> B["雙擊 Caps Lock"]
+    B --> C["逐字走訪<br/>讀每個位置的候選頁"]
+    C --> D["目前句子<br/>TextPattern 或候選重建"]
+    D --> E["每個位置一題 Choice<br/>正反序各問一次"]
+    E --> F{"有修改？"}
+    F -- 是 --> G["浮窗：目前／建議／可選列"]
+    F -- 否 --> H["沒有建議修改"]
+    G -- Tab --> I["套用：貼上整句<br/>或逐處用數字鍵選字"]
+```
+
+1. **攔截熱鍵**：低階鍵盤 hook 判斷雙擊（兩次完整按下／放開、排除 auto-repeat），只在前景有焦點視窗且輸入法是微軟注音時介入；單擊 350 ms 後原樣重播。
+2. **找到候選窗**：微軟注音的候選窗在 Windows 沉浸式 IME 的 z-band 裡，`EnumWindows` 等 API 都看不到；程式訂閱 UI Automation 的 StructureChanged 事件，候選窗每次打開都會帶著 HWND 出現。
+3. **逐字走訪**：用輸入法自己的鍵（Esc、Home、↓、→、End、←）走過整句，每個位置用三次跨程序 UIA 呼叫讀第 1 頁候選，約 0.1 秒一字；句尾與空白、英文的處理方式見[運作原理](docs/how-it-works.md)。
+4. **目前句子**：有 UIA TextPattern 的編輯器（Chromium、Electron、WPF）直接讀游標前的文字；沒有的（原生 EDIT）用各位置候選第 1 項重建。
+5. **問 Jev**：一個請求、每個位置一題 Choice，選項是「換了該位置的整句」；正反序各問一次取平均；門檻、迭代、相鄰成對比較、罕見字過濾等規則見 [Prompt 設計](docs/prompt-design.md)。
+6. **套用**：目前句子精確可知時 Esc 取消組字、貼上整句；否則逐處重開候選、以字找當下的數字鍵送出。
+
+完整說明與一句話從頭到尾的追蹤範例：[docs/how-it-works.md](docs/how-it-works.md)。
+
+## 測試與評估
+
+全部是靜態測試，不操作鍵盤、不碰輸入法、不開視窗：
+
+```bash
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\run-tests.ps1          # 單元測試（約 180 項）
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\run-tests.ps1 -Live    # 加跑 111 句線上評估（需要已儲存的 key）
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\run-tests.ps1 -Whole   # 只跑整句案例，並印出實際送出的 prompt 與回答
+bin\Jevboard.Tests.exe --preview                                                 # 用假資料顯示浮窗 1.5 秒並存成 bin\overlay-preview.png
+```
+
+單元測試用錄下的微軟注音候選頁與 Jev 回應格式當 fixture，涵蓋句子重建、題目建構、回應解析、採用規則、迭代、成對比較、數字鍵決策與浮窗文字。評估集的組成、方法、最新結果與已知失敗：[docs/evaluation.md](docs/evaluation.md)。
+
+## 專案結構
+
+```
+Jevboard/
+├── build.ps1                 建置 bin\Jevboard.exe（csc.exe，不需 SDK）
+├── src/
+│   ├── Program.cs            托盤、設定、流程控制、題目建構與採用規則
+│   ├── Hotkey.cs             低階鍵盤 hook：雙擊判斷、重播、浮窗期間的按鍵攔截
+│   ├── Candidates.cs         候選窗定位、逐字走訪、目前句子、套用
+│   ├── JevClient.cs          Jev /v1/systemone 的 Choice 請求與回應驗證
+│   ├── Overlay.cs            不取得焦點的浮窗（自繪）
+│   ├── NativeUia.cs          最小原生 COM IUIAutomation 介面（事件訂閱）
+│   └── Native.cs             Win32 P/Invoke
+├── tests/
+│   ├── JevboardTests.cs      單元測試、線上評估集、浮窗預覽
+│   └── run-tests.ps1
+├── docs/
+│   ├── how-it-works.md       運作原理與完整追蹤範例
+│   ├── prompt-design.md      給 Jev 的 prompt 與所有判斷規則
+│   ├── evaluation.md         評估方法、結果與已知失敗
+│   └── overlay-preview.png
+├── diagnostics/              第一階段可行性實驗與證據（保留為歷史紀錄）
+└── POC_SPEC.md               原始 POC 規格
+```
+
+## 資料、隱私與安全
+
+- **只在你雙擊時讀取**：鍵盤 hook 平時只判斷 Caps Lock 與浮窗期間的按鍵，不記錄你打了什麼。
+- **送出的內容**：雙擊當下那一句（輸入法轉換結果）、每個位置的候選字、以及游標前最多 40 字的已定稿文字（當作語境），透過 HTTPS 送到 `api.typesafe.ai`。沒有其他上傳。
+- **日誌**：`%LOCALAPPDATA%\Jevboard\jevboard.log` 只記事件、世代序號、候選 id 與機率、視窗 class 名稱，不含 key、句子或候選字。
+- **key 保存**：`%LOCALAPPDATA%\Jevboard\key.bin`，Windows DPAPI 使用者範圍加密，只有同一個 Windows 帳號讀得到。
+- **注入的按鍵**：所有程式注入的按鍵都帶標記，hook 會放行，不會把自己的按鍵當成你的操作。只有候選清單開著時才送 Esc（清單沒開時 Esc 會整句取消）。
+- **貼上套用**會短暫使用剪貼簿，貼上後把原本的文字放回；非文字內容無法還原。
 
 ## 已知限制
 
-- 「目前」句子的來源有兩種。Chromium／Electron／WPF 這類有 UIA TextPattern 的編輯器會把未定稿組字放在文字裡，走訪結束（游標在句尾）後讀游標前的文字，最後 L 個字就是組字（L 是走訪算出的長度）；每個可讀位置的字必須是該位置某個候選的首字才採信，順便取得真正的空白、英文、標點與組字前的前文。原生 EDIT 讀不到組字，退回「各位置候選清單第 1 項」的重建，但候選清單依字頻與學習排序、整句轉換依語境，兩者不一定相同（ㄧㄠˋ 清單第 1 項是藥、整句卻是要），手動改過的字也看不到；套用時以字為準，不受影響。
-- 每個位置只讀第 1 頁（最多 9 個）候選；PageDown 可翻頁但未實作。短句、語境少時 Jev 判斷不穩（「魷魚好好吃」五個字時「魷魚」只有 0.3–0.4，與「遊於」打平；加上「夜市的烤」就是 0.99）。
-- 讀取與套用都靠注入 IME 導覽鍵，過程中候選窗會逐字閃動；使用者此時按鍵會中止流程。沒有組字時雙擊會多送一個 ↓ 給應用程式。
-- 上下文只在 EDIT／RichEdit 類視窗讀取游標前已定稿文字；Chromium 等沒有。
-- 候選 popup 位於沉浸式 IME z-band，列舉 API 都看不到；若候選窗在 Jevboard 啟動前就已打開且應用程式沒有系統 caret，第一次會提示重新再試。
+- **Jev 的判斷有上限**：短句、語境少時機率不穩；專有名詞（羅密歐）、談字本身的句子（「在再不分」）、搭配偏好（出門要「帶」保險套被改成「戴」）會判斷錯。設計上以「高把握才預設改、其餘列為可選」降低傷害，但仍可能提出錯的建議，請看過再按 Tab。
+- **只讀第 1 頁候選**（最多 9 個）；正確的字在第 2 頁以後時無法提議。
+- **原生 EDIT 的「目前句子」是重建的**：這類欄位讀不到未定稿組字，只能用各位置候選第 1 項拼出來；候選清單依字頻排序、整句轉換依語境，偶爾不一致，手動改過的字也看不到。
+- **走訪會讓候選窗逐字閃動**，每字約 0.1 秒，空白、標點、英文的位置各多等約 0.12 秒；讀取中請不要打字。
+- **沒有組字時雙擊**會多送一次 ↓（必要時 Home、End）給應用程式。
+- **貼上套用會把句子定稿**，輸入法不會從這次修正學習；逐處選字的路徑才保持組字未提交。
+- 其他應用程式的相容性以實測為準；已驗證原生 EDIT 與 Chromium／Electron。
+
+## 疑難排解
+
+| 症狀 | 可能原因／處理 |
+|---|---|
+| 雙擊沒反應 | 看日誌是否有 `caps lock passed through: …`：`IME closed` 表示該視窗沒有開啟輸入法；`keyboard layout 0x0409` 表示目前是英文鍵盤；沒有任何紀錄表示程式沒在跑或未啟用。 |
+| 浮窗提示「沒有偵測到注音組字」 | 當時沒有未定稿的組字（已按 Enter），或輸入法在該欄位不提供候選。 |
+| 「輸入法還在英數模式」 | 程式送了 Caps Lock 與 Shift 仍切不回中文；手動切到中文再雙擊。 |
+| 「AI 暫不可用（http 401）」 | key 無效或過期，到托盤「設定…」重新輸入。 |
+| 建議句與目前句不同但你沒打錯 | 原生 EDIT 欄位的「目前」是重建的，可能與實際不同；套用時以字為準，不受影響。 |
+| 建置失敗找不到 csc.exe | 需要 Windows 內建的 .NET Framework 4.x（`C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe`）。 |
+
+## 專案歷史
+
+- `POC_SPEC.md` 是原始規格：單一位置選字、不做整句、不盲送 ↓。實作過程中依實際使用需求改成整句重選、自動開候選、貼上套用等，README 與 `docs/` 描述的是目前的行為。
+- `diagnostics/` 是第一階段的可行性實驗：證明外部程式能從微軟注音的候選窗讀到當頁候選、能用數字鍵在原組字位置選字，以及 IMM32／UIA TextEditPattern 在原生 EDIT 讀不到未定稿組字。其中的 `REPORT.md`、`evidence/` 保留為證據，實驗程式與編譯好的小工具也一併保留。
+
+## 授權
+
+[MIT](LICENSE)。Jev 與 Microsoft Bopomofo 各為其所有者的產品，本專案與其無關。

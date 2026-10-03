@@ -55,6 +55,7 @@ namespace Jevboard.Tests
             }
             Console.WriteLine(passed + " passed, " + failed + " failed");
             if (failed == 0 && Array.IndexOf(args, "--live") >= 0) JevEval.Run();
+            if (failed == 0 && Array.IndexOf(args, "--whole") >= 0) JevEval.RunMulti();
             return failed == 0 ? 0 : 1;
         }
 
@@ -64,12 +65,12 @@ namespace Jevboard.Tests
             Overlay overlay = new Overlay();
             overlay.CreateControl();
             List<Change> changes = new List<Change> {
-                new Change { Offset = 2, Text = "妳", Replaced = "你", Probability = 0.93 },
-                new Change { Offset = 7, Text = "蘿", Replaced = "羅", Probability = 0.47, Included = false },
-                new Change { Offset = 8, Text = "蜜", Replaced = "密", Probability = 0.62 } };
+                new Change { Offset = 1, Text = "再", Replaced = "在", Probability = 0.86 },
+                new Change { Offset = 3, Text = "依次", Replaced = "一次", Probability = 0.32, Included = false },
+                new Change { Offset = 5, Text = "瑞士", Replaced = "芮氏", Probability = 0.98 } };
             overlay.ShowStatus("…", new System.Drawing.Point(200, 200));
-            overlay.ShowSentence("我愛你你是我的羅密歐", "Jev 分析整句中…");
-            overlay.ShowProposal("Jev 建議修改 3 處", changes);
+            overlay.ShowSentence("想在去一次芮氏", "Jev 分析整句中…");
+            overlay.ShowProposal("Jev 建議修改 2 處，另有 1 個可選", changes);
             System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer { Interval = 1500 };
             timer.Tick += delegate
             {
@@ -721,6 +722,18 @@ namespace Jevboard.Tests
             List<Change> changes = App.Refine(s, delegate(string state, List<JevClient.Question> questions)
             {
                 round++;
+                if (verbose)
+                {
+                    Console.WriteLine("      ---- round " + round + " request ----");
+                    Console.WriteLine("      state: " + state.Replace("\n", " / "));
+                    foreach (JevClient.Question q in questions)
+                    {
+                        if (q.Id.EndsWith("m")) continue;
+                        List<string> opts = new List<string>(); foreach (KeyValuePair<string, string> o in q.Options) opts.Add(o.Key + "=" + o.Value);
+                        Console.WriteLine("      " + q.Id + " (keep=" + q.KeepId + "): " + q.Instructions);
+                        Console.WriteLine("          " + string.Join(" | ", opts.ToArray()));
+                    }
+                }
                 Dictionary<string, JevClient.Answer> answers = JevClient.AskSync(key, state, questions, 15000, out error);
                 if (verbose && answers != null)
                 {
@@ -743,7 +756,7 @@ namespace Jevboard.Tests
         }
 
         // Whole compositions through the real pipeline (iteration included).
-        static void RunMulti()
+        public static void RunMulti()
         {
             // Two interacting errors: the IME gave 留言妃與 for 流言蜚語 (reported in use).
             Snapshot s = new Snapshot();
@@ -774,6 +787,21 @@ namespace Jevboard.Tests
             s.Positions.Add(new Position { Offset = 2, Items = new List<string> { "一次", "一", "衣", "依", "醫", "伊" } });
             s.Positions.Add(new Position { Offset = 3, Items = new List<string> { "次", "刺", "賜", "伺", "廁" } });
             Whole(s, "再試一次", "相鄰兩錯");
+            RunMulti2();
+        }
+
+        public static void RunMulti2()
+        {
+            // 想在去一次芮氏: two independent errors; 芮氏 is a dictionary word (芮氏規模) the IME preferred over 瑞士.
+            Snapshot s = new Snapshot();
+            s.Positions.Add(new Position { Offset = 0, Items = new List<string> { "想", "響", "享", "饗", "餉", "响" } });
+            s.Positions.Add(new Position { Offset = 1, Items = new List<string> { "在", "再", "載", "栽", "災", "宰" } });
+            s.Positions.Add(new Position { Offset = 2, Items = new List<string> { "去", "趣", "覷", "娶", "闃" } });
+            s.Positions.Add(new Position { Offset = 3, Items = new List<string> { "一次", "一", "衣", "依", "醫", "伊" } });
+            s.Positions.Add(new Position { Offset = 4, Items = new List<string> { "次", "刺", "賜", "伺", "廁" } });
+            s.Positions.Add(new Position { Offset = 5, Items = new List<string> { "芮氏", "瑞士", "瑞", "芮", "銳", "睿", "叡", "枘" } });
+            s.Positions.Add(new Position { Offset = 6, Items = new List<string> { "氏", "士", "是", "事", "試", "市", "視", "式", "世" } });
+            Whole(s, "想再去一次瑞士", "兩處獨立錯字");
         }
 
         static void Whole(Snapshot s, string expected, string label)

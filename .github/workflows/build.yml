@@ -1,0 +1,24 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Uses the C# compiler that ships with the .NET Framework on the runner; no SDK or NuGet packages involved.
+      - name: Build Jevboard.exe
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
+
+      # Static unit tests only: no IME, no keyboard, no window, no network. The live evaluation needs a Jev key.
+      - name: Static tests
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests\run-tests.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Jevboard
+          path: bin/Jevboard.exe
