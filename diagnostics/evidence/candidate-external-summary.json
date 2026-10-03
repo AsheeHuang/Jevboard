@@ -1,0 +1,40 @@
+{
+  "result": "external_candidate_read_success",
+  "external_probe_pid": 23456,
+  "host_pid": 16604,
+  "popup_pid": 62212,
+  "popup_hwnd": "0xB81065C",
+  "route": "FromHandle(observed popup HWND)",
+  "utc": "2026-10-02T11:36:12.0075039Z",
+  "ordered_candidates": [
+    "你",
+    "妳",
+    "擬",
+    "隬",
+    "旎",
+    "昵",
+    "伱",
+    "伲",
+    "儗"
+  ],
+  "visible_page_count": 9,
+  "matches_saved_screenshot_order": true,
+  "matches_host_tsf_prefix": true,
+  "uia_candidate_window_id": "IME_Candidate_Window",
+  "uia_panel_id": "TEMPLATE_PART_CandidatePanel",
+  "candidate_field": "ListItem.Name",
+  "snapshot": "candidate-direct-active-screen.png",
+  "native_popup_scope_screen": {
+    "width": 164,
+    "height": 362,
+    "left": 105,
+    "top": 274
+  },
+  "seed_point_screen": {
+    "x": 175,
+    "y": 340
+  },
+  "scope_limit": "Only visible current page and current position in this WinForms host; no whole-sentence, other-app, paging, or write-back validation",
+  "host_internal_tsf_count": 25,
+  "host_internal_tsf_is_not_external": true
+}

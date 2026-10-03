@@ -1,0 +1,151 @@
+{
+  "utc": "2026-10-02T11:36:11.450875Z",
+  "framework": "winforms",
+  "eventName": "tsf_candidates",
+  "data": {
+    "host": "winforms",
+    "nativeThread": 33076,
+    "data": {
+      "id": 0,
+      "reason": "begin",
+      "count_hresult": "0x00000000",
+      "count": 25,
+      "selection_hresult": "0x00000000",
+      "selection": 0,
+      "page_hresult": "0x00000000",
+      "page": 0,
+      "flags_hresult": "0x00000000",
+      "flags": 62,
+      "behavior_interface_hresult": "0x00000000",
+      "behavior_available": true,
+      "strings": [
+        {
+          "index": 0,
+          "hresult": "0x00000000",
+          "text": "你"
+        },
+        {
+          "index": 1,
+          "hresult": "0x00000000",
+          "text": "妳"
+        },
+        {
+          "index": 2,
+          "hresult": "0x00000000",
+          "text": "擬"
+        },
+        {
+          "index": 3,
+          "hresult": "0x00000000",
+          "text": "隬"
+        },
+        {
+          "index": 4,
+          "hresult": "0x00000000",
+          "text": "旎"
+        },
+        {
+          "index": 5,
+          "hresult": "0x00000000",
+          "text": "昵"
+        },
+        {
+          "index": 6,
+          "hresult": "0x00000000",
+          "text": "伱"
+        },
+        {
+          "index": 7,
+          "hresult": "0x00000000",
+          "text": "伲"
+        },
+        {
+          "index": 8,
+          "hresult": "0x00000000",
+          "text": "儗"
+        },
+        {
+          "index": 9,
+          "hresult": "0x00000000",
+          "text": "坭"
+        },
+        {
+          "index": 10,
+          "hresult": "0x00000000",
+          "text": "孴"
+        },
+        {
+          "index": 11,
+          "hresult": "0x00000000",
+          "text": "抳"
+        },
+        {
+          "index": 12,
+          "hresult": "0x00000000",
+          "text": "拟"
+        },
+        {
+          "index": 13,
+          "hresult": "0x00000000",
+          "text": "掜"
+        },
+        {
+          "index": 14,
+          "hresult": "0x00000000",
+          "text": "柅"
+        },
+        {
+          "index": 15,
+          "hresult": "0x00000000",
+          "text": "檷"
+        },
+        {
+          "index": 16,
+          "hresult": "0x00000000",
+          "text": "狔"
+        },
+        {
+          "index": 17,
+          "hresult": "0x00000000",
+          "text": "祢"
+        },
+        {
+          "index": 18,
+          "hresult": "0x00000000",
+          "text": "禰"
+        },
+        {
+          "index": 19,
+          "hresult": "0x00000000",
+          "text": "苨"
+        },
+        {
+          "index": 20,
+          "hresult": "0x00000000",
+          "text": "薿"
+        },
+        {
+          "index": 21,
+          "hresult": "0x00000000",
+          "text": "譺"
+        },
+        {
+          "index": 22,
+          "hresult": "0x00000000",
+          "text": "鉨"
+        },
+        {
+          "index": 23,
+          "hresult": "0x00000000",
+          "text": "馜"
+        },
+        {
+          "index": 24,
+          "hresult": "0x00000000",
+          "text": "ㄋㄧˇ"
+        }
+      ],
+      "note": "Read-only owning-thread probe; no candidate selection/finalization. Begin may occur before strings are ready. Candidate granularity is not inferred."
+    }
+  }
+}

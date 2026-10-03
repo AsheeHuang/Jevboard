@@ -1,0 +1,542 @@
+[
+  {
+    "utc": "2026-10-02T11:40:34.6721735Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "282",
+      "wParam": 3,
+      "lParam": 1,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 0,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.673501Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "288",
+      "wParam": 6,
+      "lParam": 23058408,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 0,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.673501Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_after",
+    "data": {
+      "message": "288",
+      "wParam": 6,
+      "lParam": 23058408,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 0,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.673501Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_after",
+    "data": {
+      "message": "282",
+      "wParam": 3,
+      "lParam": 1,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 0,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.674501Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "282",
+      "wParam": 4,
+      "lParam": 1,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 0,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.674501Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_after",
+    "data": {
+      "message": "282",
+      "wParam": 4,
+      "lParam": 1,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 0,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.6779183Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "10F",
+      "wParam": 22963,
+      "lParam": 440,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "妳"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 1,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.6789208Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_after",
+    "data": {
+      "message": "10F",
+      "wParam": 22963,
+      "lParam": 440,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "妳"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 1,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.7055384Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "282",
+      "wParam": 15,
+      "lParam": 3871962,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "妳"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 1,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "utc": "2026-10-02T11:40:34.7055384Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_after",
+    "data": {
+      "message": "282",
+      "wParam": 15,
+      "lParam": 3871962,
+      "imm": {
+        "hwnd": "822042A",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "妳"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 1,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  }
+]

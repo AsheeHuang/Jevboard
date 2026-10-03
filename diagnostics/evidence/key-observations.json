@@ -1,0 +1,264 @@
+{
+  "rawReading": {
+    "utc": "2026-10-02T11:17:22.511303Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "10F",
+      "wParam": 12555,
+      "lParam": 440,
+      "imm": {
+        "hwnd": "85A0CF4",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 4,
+          "value": "ㄋㄧ"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 2,
+          "base64": "AAE="
+        },
+        "clauses": {
+          "byteCount": 12,
+          "base64": "AAAAAAEAAAACAAAA"
+        },
+        "cursor": 2,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  "convertedComposition": {
+    "utc": "2026-10-02T11:17:47.0514988Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "10F",
+      "wParam": 20320,
+      "lParam": 440,
+      "imm": {
+        "hwnd": "85A0CF4",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 1,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  },
+  "externalAfterCommit": {
+    "kind": "sample",
+    "status": "approved_target",
+    "host_pid": 10936,
+    "target_thread": 58372,
+    "root_hwnd": "0x1710C86",
+    "focus_hwnd": "0x85A0CF4",
+    "focus_class": "WindowsForms10.EDIT.app.0.1e84ccb_r6_ad1",
+    "hkl": "0x4040404",
+    "gui_caret_hwnd": "0x85A0CF4",
+    "gui_caret_rect": {
+      "left": 35,
+      "top": 1,
+      "right": 36,
+      "bottom": 38
+    },
+    "imm32": {
+      "status": "null_context",
+      "win32_error_diagnostic_only": 0,
+      "note": "External/thread-bound IMM access failed; this does not establish absence of composition or candidates"
+    },
+    "managed_uia": {
+      "status": "approved_element",
+      "process_id": 10936,
+      "control_type": "ControlType.Document",
+      "framework": "WinForm",
+      "native_hwnd": "0x85A0CF4",
+      "value": {
+        "status": "unsupported"
+      },
+      "text": {
+        "status": "read",
+        "document": "你",
+        "selections": [
+          {
+            "text": "",
+            "bounds": []
+          }
+        ],
+        "note": "TextPattern selection/caret is not the active composition range"
+      }
+    },
+    "native_text_edit": {
+      "status": "pattern_not_available",
+      "pattern_id": 10032,
+      "hresult": "0x00000000"
+    },
+    "utc": "2026-10-02T11:18:21.9389292Z",
+    "probe_pid": 46180
+  },
+  "externalDuringCandidate": {
+    "kind": "sample",
+    "status": "approved_target",
+    "host_pid": 10936,
+    "target_thread": 58372,
+    "root_hwnd": "0x1710C86",
+    "focus_hwnd": "0x85A0CF4",
+    "focus_class": "WindowsForms10.EDIT.app.0.1e84ccb_r6_ad1",
+    "hkl": "0x4040404",
+    "gui_caret_hwnd": "0x85A0CF4",
+    "gui_caret_rect": {
+      "left": 6,
+      "top": 1,
+      "right": 7,
+      "bottom": 38
+    },
+    "imm32": {
+      "status": "null_context",
+      "win32_error_diagnostic_only": 0,
+      "note": "External/thread-bound IMM access failed; this does not establish absence of composition or candidates"
+    },
+    "managed_uia": {
+      "status": "approved_element",
+      "process_id": 10936,
+      "control_type": "ControlType.Document",
+      "framework": "WinForm",
+      "native_hwnd": "0x85A0CF4",
+      "value": {
+        "status": "unsupported"
+      },
+      "text": {
+        "status": "read",
+        "document": "",
+        "selections": [
+          {
+            "text": "",
+            "bounds": []
+          }
+        ],
+        "note": "TextPattern selection/caret is not the active composition range"
+      }
+    },
+    "native_text_edit": {
+      "status": "pattern_not_available",
+      "pattern_id": 10032,
+      "hresult": "0x00000000"
+    },
+    "utc": "2026-10-02T11:18:03.3767097Z",
+    "probe_pid": 46180
+  },
+  "candidateOpen": {
+    "utc": "2026-10-02T11:18:02.3808139Z",
+    "framework": "winforms",
+    "eventName": "wm_ime_before",
+    "data": {
+      "message": "282",
+      "wParam": 5,
+      "lParam": 1,
+      "imm": {
+        "hwnd": "85A0CF4",
+        "contextAvailable": true,
+        "keyboardLayout": "4040404",
+        "open": true,
+        "conversionAvailable": true,
+        "conversion": 1,
+        "sentence": 8,
+        "composition": {
+          "byteCount": 2,
+          "value": "你"
+        },
+        "reading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "result": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "resultReading": {
+          "byteCount": 0,
+          "value": ""
+        },
+        "attributes": {
+          "byteCount": 1,
+          "base64": "AQ=="
+        },
+        "clauses": {
+          "byteCount": 8,
+          "base64": "AAAAAAEAAAA="
+        },
+        "cursor": 1,
+        "deltaStart": 0,
+        "candidateListCount": 0,
+        "candidateTotalBytes": 0,
+        "candidateLists": [
+          {
+            "listIndex": 0,
+            "byteCount": 0,
+            "candidates": []
+          }
+        ]
+      }
+    }
+  }
+}

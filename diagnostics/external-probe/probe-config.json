@@ -1,0 +1,10 @@
+{
+  "pids": [
+    10936,
+    54756
+  ],
+  "output": "C:\\Users\\timhuang\\OneDrive\\文件\\ChatGPT\\Jevboard\\diagnostics\\evidence\\external-session.jsonl",
+  "seconds": 900,
+  "interval_ms": 500,
+  "once": false
+}

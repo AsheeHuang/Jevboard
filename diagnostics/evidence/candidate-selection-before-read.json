@@ -1,0 +1,437 @@
+{
+  "utc": "2026-10-02T11:40:23.3492316Z",
+  "probe_pid": 6536,
+  "host_pid": 16604,
+  "kind": "popup_observation",
+  "data": {
+    "status": "bounded_uia_read",
+    "seed_route": "FromHandle(observed popup HWND)",
+    "hit_pid": 62212,
+    "hit_hwnd": "0xB81065C",
+    "hit_class": "Windows.UI.Core.CoreWindow",
+    "image": "C:\\WINDOWS\\SystemApps\\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\\TextInputHost.exe",
+    "node_count": 30,
+    "nodes": [
+      {
+        "tree_index": 0,
+        "control_type": "ControlType.Window",
+        "name": "Windows 輸入體驗",
+        "automation_id": "",
+        "class": "Windows.UI.Core.CoreWindow",
+        "bounds": {
+          "x": 106,
+          "y": 275,
+          "width": 162,
+          "height": 359
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 1,
+        "control_type": "ControlType.Menu",
+        "name": "Microsoft 候選 UI",
+        "automation_id": "IME_Candidate_Window",
+        "class": "menu",
+        "bounds": {
+          "x": 116,
+          "y": 293,
+          "width": 142,
+          "height": 323
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 2,
+        "control_type": "ControlType.List",
+        "name": "候選字項目面板",
+        "automation_id": "TEMPLATE_PART_CandidatePanel",
+        "class": "",
+        "bounds": {
+          "x": 116,
+          "y": 293,
+          "width": 142,
+          "height": 323
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 3,
+        "control_type": "ControlType.ListItem",
+        "name": "你",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 298,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 4,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 303,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 5,
+        "control_type": "ControlType.ListItem",
+        "name": "妳",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 330,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 6,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 335,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 7,
+        "control_type": "ControlType.ListItem",
+        "name": "擬",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 362,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 8,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 367,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 9,
+        "control_type": "ControlType.ListItem",
+        "name": "隬",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 394,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 10,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 399,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 11,
+        "control_type": "ControlType.ListItem",
+        "name": "旎",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 426,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 12,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 431,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 13,
+        "control_type": "ControlType.ListItem",
+        "name": "昵",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 458,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 14,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 463,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 15,
+        "control_type": "ControlType.ListItem",
+        "name": "伱",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 490,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 16,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 495,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 17,
+        "control_type": "ControlType.ListItem",
+        "name": "伲",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 522,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 18,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 527,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 19,
+        "control_type": "ControlType.ListItem",
+        "name": "儗",
+        "automation_id": "",
+        "class": "",
+        "bounds": {
+          "x": 121,
+          "y": 554,
+          "width": 132,
+          "height": 28
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 20,
+        "control_type": "ControlType.Text",
+        "name": "",
+        "automation_id": "TEMPLATE_PART_CandidateItemAnnotation",
+        "class": "TextBlock",
+        "bounds": {
+          "x": 223,
+          "y": 559,
+          "width": 8,
+          "height": 19
+        },
+        "text_pattern": ""
+      },
+      {
+        "tree_index": 21,
+        "control_type": "ControlType.Menu",
+        "name": "呼叫器",
+        "automation_id": "TEMPLATE_PART_CandidatePanel_Pager",
+        "class": "Microsoft.UI.Xaml.Controls.PipsPager",
+        "bounds": {
+          "x": 235,
+          "y": 422,
+          "width": 20,
+          "height": 36
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 22,
+        "control_type": "ControlType.Pane",
+        "name": "",
+        "automation_id": "PipsPagerScrollViewer",
+        "class": "ScrollViewer",
+        "bounds": {
+          "x": 235,
+          "y": 422,
+          "width": 20,
+          "height": 36
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 23,
+        "control_type": "ControlType.Button",
+        "name": "頁面 1",
+        "automation_id": "",
+        "class": "Button",
+        "bounds": {
+          "x": 235,
+          "y": 422,
+          "width": 20,
+          "height": 12
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 24,
+        "control_type": "ControlType.Button",
+        "name": "頁面 2",
+        "automation_id": "",
+        "class": "Button",
+        "bounds": {
+          "x": 235,
+          "y": 434,
+          "width": 20,
+          "height": 12
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 25,
+        "control_type": "ControlType.Button",
+        "name": "頁面 3",
+        "automation_id": "",
+        "class": "Button",
+        "bounds": {
+          "x": 235,
+          "y": 446,
+          "width": 20,
+          "height": 12
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 26,
+        "control_type": "ControlType.Button",
+        "name": "上一頁",
+        "automation_id": "TEMPLATE_PART_PagePreviousButton",
+        "class": "Button",
+        "bounds": {
+          "x": 123,
+          "y": 591,
+          "width": 20,
+          "height": 20
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 27,
+        "control_type": "ControlType.Button",
+        "name": "下一頁",
+        "automation_id": "TEMPLATE_PART_PageNextButton",
+        "class": "Button",
+        "bounds": {
+          "x": 147,
+          "y": 591,
+          "width": 20,
+          "height": 20
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 28,
+        "control_type": "ControlType.Button",
+        "name": "按 [Tab] 以開啟表格檢視",
+        "automation_id": "TEMPLATE_PART_TableViewButton",
+        "class": "Button",
+        "bounds": {
+          "x": 207,
+          "y": 591,
+          "width": 20,
+          "height": 20
+        },
+        "text_pattern": null
+      },
+      {
+        "tree_index": 29,
+        "control_type": "ControlType.Button",
+        "name": "表情圖示和符號",
+        "automation_id": "TEMPLATE_PART_EmojiButton",
+        "class": "Button",
+        "bounds": {
+          "x": 231,
+          "y": 591,
+          "width": 20,
+          "height": 20
+        },
+        "text_pattern": null
+      }
+    ]
+  }
+}
