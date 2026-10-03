@@ -155,12 +155,19 @@ namespace Jevboard
             return list;
         }
 
-        void RefreshProposed() { proposed.Set(Segments(currentText, changes)); }
+        void RefreshProposed() { proposed.Set(Runs(currentText, changes)); }
 
-        // The sentence split into (text, isChange) runs with every included change applied.
-        internal static List<KeyValuePair<string, bool>> Segments(string current, List<Change> changes)
+        // A run of the proposed sentence: plain text, an applied change, or original text that has switched-off
+        // alternatives (Label lists their row numbers, so the digit to press is visible in the sentence itself).
+        internal class Run
         {
-            List<KeyValuePair<string, bool>> segments = new List<KeyValuePair<string, bool>>();
+            public const int Plain = 0, Applied = 1, Optional = 2;
+            public string Text; public int Kind; public string Label = "";
+        }
+
+        internal static List<Run> Runs(string current, List<Change> changes)
+        {
+            List<Run> runs = new List<Run>();
             StringBuilder plain = new StringBuilder();
             int i = 0;
             while (i < current.Length)
@@ -169,28 +176,59 @@ namespace Jevboard
                 foreach (Change c in changes) if (c.Included && c.Offset == i) { hit = c; break; }
                 if (hit != null)
                 {
-                    if (plain.Length > 0) { segments.Add(new KeyValuePair<string, bool>(plain.ToString(), false)); plain.Length = 0; }
-                    segments.Add(new KeyValuePair<string, bool>(hit.Text, true));
+                    Flush(runs, plain);
+                    runs.Add(new Run { Text = hit.Text, Kind = Run.Applied });
                     i += hit.Replaced.Length;
+                    continue;
                 }
-                else { plain.Append(current[i]); i++; }
+                int span = 0;
+                StringBuilder label = new StringBuilder();
+                for (int k = 0; k < changes.Count; k++)
+                {
+                    Change c = changes[k];
+                    if (c.Included || c.Offset != i) continue;
+                    span = Math.Max(span, c.Replaced.Length);
+                    label.Append(label.Length > 0 ? "," : "").Append(k + 1);
+                }
+                if (span > 0 && i + span <= current.Length)
+                {
+                    Flush(runs, plain);
+                    runs.Add(new Run { Text = current.Substring(i, span), Kind = Run.Optional, Label = label.ToString() });
+                    i += span;
+                    continue;
+                }
+                plain.Append(current[i]); i++;
             }
-            if (plain.Length > 0) segments.Add(new KeyValuePair<string, bool>(plain.ToString(), false));
+            Flush(runs, plain);
+            return runs;
+        }
+
+        static void Flush(List<Run> runs, StringBuilder plain)
+        {
+            if (plain.Length > 0) { runs.Add(new Run { Text = plain.ToString(), Kind = Run.Plain }); plain.Length = 0; }
+        }
+
+        // Compatibility view: (text, isApplied) runs.
+        internal static List<KeyValuePair<string, bool>> Segments(string current, List<Change> changes)
+        {
+            List<KeyValuePair<string, bool>> segments = new List<KeyValuePair<string, bool>>();
+            foreach (Run r in Runs(current, changes)) segments.Add(new KeyValuePair<string, bool>(r.Text, r.Kind == Run.Applied));
             return segments;
         }
 
-        // Same content as Segments, with changes wrapped in 【】 (used by tests and logs-free diagnostics).
+        // Applied changes wrapped in 【】, optional spans followed by their row numbers in ‹›; used by tests.
         internal static string ProposedText(string current, List<Change> changes)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (KeyValuePair<string, bool> seg in Segments(current, changes)) sb.Append(seg.Value ? "【" + seg.Key + "】" : seg.Key);
+            foreach (Run r in Runs(current, changes))
+                sb.Append(r.Kind == Run.Applied ? "【" + r.Text + "】" : r.Kind == Run.Optional ? r.Text + "‹" + r.Label + "›" : r.Text);
             return sb.ToString();
         }
 
-        static List<KeyValuePair<string, bool>> Plain(string text)
+        static List<Run> Plain(string text)
         {
-            List<KeyValuePair<string, bool>> one = new List<KeyValuePair<string, bool>>();
-            one.Add(new KeyValuePair<string, bool>(text, false));
+            List<Run> one = new List<Run>();
+            one.Add(new Run { Text = text, Kind = Run.Plain });
             return one;
         }
 
@@ -207,43 +245,64 @@ namespace Jevboard
         public void HideOverlay() { hintTimer.Stop(); if (Visible) Hide(); rows.Controls.Clear(); changes = new List<Change>(); }
 
         // A sentence with a small gray prefix; changed runs are drawn bold on a soft accent background.
+        // A sentence with a small gray prefix; applied runs are bold on a soft accent background, spans with
+        // switched-off alternatives keep the original text over a dotted amber underline followed by their row numbers.
         class SentenceLine : Control
         {
             readonly string prefix;
-            List<KeyValuePair<string, bool>> segments = new List<KeyValuePair<string, bool>>();
+            List<Run> runs = new List<Run>();
             static readonly Font Bold = new Font(BodyFont, FontStyle.Bold);
+            static readonly Color Amber = Color.FromArgb(217, 142, 4);
             public SentenceLine(string prefix)
             {
                 this.prefix = prefix;
                 SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
                 TabStop = false; Font = BodyFont; Height = BodyFont.Height + 10;
             }
-            public void Set(List<KeyValuePair<string, bool>> runs)
+            public void Set(List<Run> value)
             {
-                segments = runs;
+                runs = value;
                 int width = Measure(prefix, SmallFont) + 10;
-                foreach (KeyValuePair<string, bool> seg in segments) width += Measure(seg.Key, seg.Value ? Bold : BodyFont) + (seg.Value ? 8 : 0);
-                Size = new Size(width + 4, BodyFont.Height + 10);
+                foreach (Run r in runs) width += RunWidth(r);
+                Size = new Size(width + 4, BodyFont.Height + 12);
                 Invalidate();
             }
             static int Measure(string text, Font font) { return TextRenderer.MeasureText(text, font, Size.Empty, TextFormatFlags.NoPadding).Width; }
+            static int RunWidth(Run r)
+            {
+                if (r.Kind == Run.Applied) return Measure(r.Text, Bold) + 8;
+                if (r.Kind == Run.Optional) return Measure(r.Text, BodyFont) + Measure(r.Label, SmallFont) + 4;
+                return Measure(r.Text, BodyFont);
+            }
             protected override void OnPaint(PaintEventArgs e)
             {
                 e.Graphics.Clear(BackColor);
-                int x = 0, mid = Height / 2;
+                int x = 0, mid = Height / 2, textTop = mid - BodyFont.Height / 2;
                 TextRenderer.DrawText(e.Graphics, prefix, SmallFont, new Point(x, mid - SmallFont.Height / 2), Muted, TextFormatFlags.NoPadding);
                 x += Measure(prefix, SmallFont) + 10;
-                foreach (KeyValuePair<string, bool> seg in segments)
+                foreach (Run r in runs)
                 {
-                    Font font = seg.Value ? Bold : BodyFont;
-                    int w = Measure(seg.Key, font);
-                    if (seg.Value)
+                    if (r.Kind == Run.Applied)
                     {
+                        int w = Measure(r.Text, Bold);
                         using (SolidBrush brush = new SolidBrush(AccentSoft)) e.Graphics.FillRectangle(brush, x, 2, w + 8, Height - 4);
-                        TextRenderer.DrawText(e.Graphics, seg.Key, font, new Point(x + 4, mid - font.Height / 2), Accent, TextFormatFlags.NoPadding);
+                        TextRenderer.DrawText(e.Graphics, r.Text, Bold, new Point(x + 4, mid - Bold.Height / 2), Accent, TextFormatFlags.NoPadding);
                         x += w + 8;
                     }
-                    else { TextRenderer.DrawText(e.Graphics, seg.Key, font, new Point(x, mid - font.Height / 2), Ink, TextFormatFlags.NoPadding); x += w; }
+                    else if (r.Kind == Run.Optional)
+                    {
+                        int w = Measure(r.Text, BodyFont);
+                        TextRenderer.DrawText(e.Graphics, r.Text, BodyFont, new Point(x, textTop), Ink, TextFormatFlags.NoPadding);
+                        using (Pen pen = new Pen(Amber, 2f) { DashStyle = DashStyle.Dot })
+                            e.Graphics.DrawLine(pen, x + 1, textTop + BodyFont.Height + 1, x + w - 1, textTop + BodyFont.Height + 1);
+                        TextRenderer.DrawText(e.Graphics, r.Label, SmallFont, new Point(x + w + 1, textTop - 2), Amber, TextFormatFlags.NoPadding);
+                        x += w + Measure(r.Label, SmallFont) + 4;
+                    }
+                    else
+                    {
+                        TextRenderer.DrawText(e.Graphics, r.Text, BodyFont, new Point(x, textTop), Ink, TextFormatFlags.NoPadding);
+                        x += Measure(r.Text, BodyFont);
+                    }
                 }
             }
         }

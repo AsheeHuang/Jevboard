@@ -30,6 +30,9 @@ namespace Jevboard.Tests
             return s;
         }
 
+        // Mirrored questions (id + "m") are answered like their originals by the fakes below.
+        static string Base(string id) { return id.EndsWith("m") ? id.Substring(0, id.Length - 1) : id; }
+
         static JevClient.Answer Answer(string choice, params object[] idProbPairs)
         {
             JevClient.Answer a = new JevClient.Answer { Ok = true, Choice = choice };
@@ -44,7 +47,7 @@ namespace Jevboard.Tests
         {
             Console.OutputEncoding = Encoding.UTF8;
             if (Array.IndexOf(args, "--preview") >= 0) return Preview();
-            Action[] tests = { TestCurrentText, TestResolveCurrent, TestBopomofo, TestCommonHanzi, TestQuestions, TestRareAlternatives, TestUnknownPositions, TestParse, TestPropose, TestProposedText, TestRefine, TestKeys };
+            Action[] tests = { TestCurrentText, TestResolveCurrent, TestBopomofo, TestCommonHanzi, TestQuestions, TestRareAlternatives, TestUnknownPositions, TestParse, TestPropose, TestProposedText, TestRefine, TestPairStage, TestBothOrders, TestKeys };
             foreach (Action test in tests)
             {
                 try { test(); }
@@ -368,7 +371,13 @@ namespace Jevboard.Tests
             List<KeyValuePair<string, bool>> segs = Overlay.Segments("由於好好吃", two);
             Eq(3, segs.Count, "segments: change, plain, change"); Check(segs[0].Value && segs[0].Key == "魷魚" && !segs[1].Value && segs[1].Key == "好好" && segs[2].Value, "segment runs");
             two[1].Included = false;
-            Eq("【魷魚】好好吃", Overlay.ProposedText("由於好好吃", two), "excluded change shows the original");
+            Eq("【魷魚】好好吃‹2›", Overlay.ProposedText("由於好好吃", two), "a switched-off alternative marks the original with its row number");
+            List<Overlay.Run> runs = Overlay.Runs("由於好好吃", two);
+            Eq(3, runs.Count, "applied, plain, optional"); Check(runs[2].Kind == Overlay.Run.Optional && runs[2].Text == "吃" && runs[2].Label == "2", "optional run");
+            two.Add(new Change { Offset = 4, Text = "痴", Replaced = "吃", Included = false });
+            Eq("【魷魚】好好吃‹2,3›", Overlay.ProposedText("由於好好吃", two), "several alternatives at one position list every row");
+            two[0].Included = false;
+            Eq("由於‹1›好好吃‹2,3›", Overlay.ProposedText("由於好好吃", two), "nothing applied: both spans are marked, sentence unchanged");
         }
 
         // 留言妃與 → 流言蜚語 needs two rounds: 蜚語 only beats 妃與 once 與 is gone, and 流言 only once the tail reads 蜚語.
@@ -390,8 +399,8 @@ namespace Jevboard.Tests
                 foreach (JevClient.Question q in qs)
                 {
                     keepIds.Add(round + ":" + q.Id + "=" + q.KeepId);
-                    if (round == 1 && q.Id == "p2") answers[q.Id] = Answer("c4", q.KeepId, 0.1, "c4", 0.8);        // 蜚語
-                    else if (round == 2 && q.Id == "p0") answers[q.Id] = Answer("c2", q.KeepId, 0.1, "c2", 0.9);   // 流言
+                    if (round == 1 && Base(q.Id) == "p2") answers[q.Id] = Answer("c4", q.KeepId, 0.1, "c4", 0.8);        // 蜚語
+                    else if (round == 2 && Base(q.Id) == "p0") answers[q.Id] = Answer("c2", q.KeepId, 0.1, "c2", 0.9);   // 流言
                     else answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.9);
                 }
                 return answers;
@@ -410,8 +419,8 @@ namespace Jevboard.Tests
                 Dictionary<string, JevClient.Answer> answers = new Dictionary<string, JevClient.Answer>();
                 foreach (JevClient.Question q in qs)
                 {
-                    if (round == 1 && q.Id == "p2") answers[q.Id] = Answer("c4", q.KeepId, 0.1, "c4", 0.8);
-                    else if (round == 2 && q.Id == "p2") answers[q.Id] = Answer("c1", q.KeepId, 0.1, "c1", 0.9);   // back to 妃與
+                    if (round == 1 && Base(q.Id) == "p2") answers[q.Id] = Answer("c4", q.KeepId, 0.1, "c4", 0.8);
+                    else if (round == 2 && Base(q.Id) == "p2") answers[q.Id] = Answer("c1", q.KeepId, 0.1, "c1", 0.9);   // back to 妃與
                     else answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.9);
                 }
                 return answers;
@@ -420,12 +429,113 @@ namespace Jevboard.Tests
             Check(App.Refine(s, delegate(string st, List<JevClient.Question> qs) { return null; }, 3) == null, "first request failing yields null");
         }
 
+        // 在是一次 → 再試一次: per-position answers accept nothing (再是一次 / 在試一次 both look odd), the pair question
+        // offers 再試一次 and wins.
+        static void TestPairStage()
+        {
+            Snapshot s = new Snapshot();
+            s.Positions.Add(new Position { Offset = 0, Items = new List<string> { "在", "再", "載", "栽" } });
+            s.Positions.Add(new Position { Offset = 1, Items = new List<string> { "是", "試", "事", "市" } });
+            s.Positions.Add(new Position { Offset = 2, Items = new List<string> { "一次", "一", "衣" } });
+            s.Positions.Add(new Position { Offset = 3, Items = new List<string> { "次", "刺", "賜" } });
+            s.Current = Candidates.CurrentText(s.Positions);
+            List<string> asked = new List<string>();
+            Func<string, List<JevClient.Question>, Dictionary<string, JevClient.Answer>> ask = delegate(string state, List<JevClient.Question> qs)
+            {
+                Dictionary<string, JevClient.Answer> answers = new Dictionary<string, JevClient.Answer>();
+                foreach (JevClient.Question q in qs)
+                {
+                    if (Base(q.Id) == "pair")
+                    {
+                        List<string> ids = new List<string>(); foreach (KeyValuePair<string, string> o in q.Options) ids.Add(o.Key + "=" + o.Value);
+                        if (q.Id == "pair") asked.Add(string.Join(" ", ids.ToArray()));
+                        answers[q.Id] = Answer("d0", "keep", 0.1, "s0", 0.05, "s1", 0.05, "d0", 0.8);   // 再試一次
+                    }
+                    else if (Base(q.Id) == "p0") answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.6, "c2", 0.3);   // 再 plausible but not convincing alone
+                    else if (Base(q.Id) == "p1") answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.55, "c2", 0.35); // 試 likewise
+                    else answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.95);
+                }
+                return answers;
+            };
+            List<Change> changes = App.Refine(s, ask, 3);
+            Eq(1, asked.Count, "pair question asked once");
+            Check(asked[0].Contains("keep=在是一次") && asked[0].Contains("s0=再是一次") && asked[0].Contains("s1=在試一次") && asked[0].Contains("d0=再試一次"), "options: keep, each alone, both together: " + asked[0]);
+            Eq(2, App.IncludedCount(changes), "both characters applied");
+            Eq("再試一次", App.ApplyChanges(s.Current, changes.FindAll(delegate(Change c) { return c.Included; })), "final sentence");
+
+            // The pair question only runs when nothing was accepted, and a weak pair answer changes nothing.
+            asked.Clear();
+            ask = delegate(string state, List<JevClient.Question> qs)
+            {
+                Dictionary<string, JevClient.Answer> answers = new Dictionary<string, JevClient.Answer>();
+                foreach (JevClient.Question q in qs)
+                {
+                    if (Base(q.Id) == "pair") { if (q.Id == "pair") asked.Add(q.Id); answers[q.Id] = Answer("d0", "keep", 0.45, "d0", 0.5); }
+                    else if (Base(q.Id) == "p0") answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.6, "c2", 0.3);
+                    else if (Base(q.Id) == "p1") answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.55, "c2", 0.35);
+                    else answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.95);
+                }
+                return answers;
+            };
+            changes = App.Refine(s, ask, 3);
+            Eq(1, asked.Count, "pair question asked"); Eq(0, App.IncludedCount(changes), "0.5 against 0.45 is not convincing");
+            Eq(2, changes.Count, "the two alternatives stay as optional rows");
+
+            // Characters the IME converted as one long word (羅密歐) are left out of the pair question.
+            Snapshot name = new Snapshot();
+            name.Positions.Add(new Position { Offset = 0, Items = new List<string> { "我", "婐" } });
+            name.Positions.Add(new Position { Offset = 1, Items = new List<string> { "的", "得" } });
+            name.Positions.Add(new Position { Offset = 2, Items = new List<string> { "羅密歐", "羅", "蘿" } });
+            name.Positions.Add(new Position { Offset = 3, Items = new List<string> { "密", "蜜" } });
+            name.Positions.Add(new Position { Offset = 4, Items = new List<string> { "歐", "鷗" } });
+            name.Current = Candidates.CurrentText(name.Positions);
+            Check(!App.InsideImeWord(name, 1) && App.InsideImeWord(name, 2) && App.InsideImeWord(name, 3) && App.InsideImeWord(name, 4), "offsets 2–4 belong to the IME word");
+            asked.Clear();
+            ask = delegate(string state, List<JevClient.Question> qs)
+            {
+                Dictionary<string, JevClient.Answer> answers = new Dictionary<string, JevClient.Answer>();
+                foreach (JevClient.Question q in qs)
+                {
+                    if (Base(q.Id) == "pair") { if (q.Id == "pair") asked.Add(q.Id); answers[q.Id] = Answer("keep", "keep", 1.0); }
+                    else if (Base(q.Id) == "p2") answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.6, "c3", 0.4);   // 蘿
+                    else if (Base(q.Id) == "p3") answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.55, "c2", 0.45); // 蜜
+                    else answers[q.Id] = Answer(q.KeepId, q.KeepId, 0.95);
+                }
+                return answers;
+            };
+            changes = App.Refine(name, ask, 3);
+            Eq(0, asked.Count, "no pair question: the only candidates sit inside the IME's word");
+            Eq(0, App.IncludedCount(changes), "name untouched");
+        }
+
+        // 約會要戴保險套: the second slot wins 0.9 in either order; averaging both orders leaves a balanced pair.
+        static void TestBothOrders()
+        {
+            JevClient.Answer forward = Answer("c2", "c1", 0.07, "c2", 0.93);
+            JevClient.Answer reversed = Answer("c1", "c1", 0.88, "c2", 0.12);
+            JevClient.Answer avg = App.Average(forward, reversed);
+            Check(avg.Ok && Math.Abs(avg.Probabilities["c1"] - 0.475) < 1e-9 && Math.Abs(avg.Probabilities["c2"] - 0.525) < 1e-9 && avg.Choice == "c2", "averaged distribution");
+            Check(App.Average(forward, new JevClient.Answer()) == forward, "a failed mirror falls back to the original");
+            Check(!App.Average(null, null).Ok, "nothing usable is not Ok");
+
+            List<string> seen = new List<string>();
+            Dictionary<string, JevClient.Answer> merged = App.AskBothOrders(delegate(string state, List<JevClient.Question> qs)
+            {
+                Dictionary<string, JevClient.Answer> answers = new Dictionary<string, JevClient.Answer>();
+                foreach (JevClient.Question q in qs) { seen.Add(q.Id + ":" + q.Options[0].Key); answers[q.Id] = q.Id.EndsWith("m") ? reversed : forward; }
+                return answers;
+            }, "", new List<JevClient.Question> { new JevClient.Question { Id = "p3", Offset = 3, Options = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("c1", "約會要戴保險套"), new KeyValuePair<string, string>("c2", "約會要帶保險套") } } });
+            Eq("p3:c1 p3m:c2", string.Join(" ", seen.ToArray()), "original and mirrored order sent together");
+            Eq(1, merged.Count, "merged back to the original ids");
+            Check(Math.Abs(merged["p3"].Probabilities["c2"] - 0.525) < 1e-9, "merged probabilities");
+        }
+
         static void TestProposedText()
         {
             List<Change> changes = new List<Change> { new Change { Offset = 0, Text = "魷魚", Replaced = "由於" } };
             Eq("【魷魚】好好吃", Overlay.ProposedText("由於好好吃", changes), "included change is marked");
             changes[0].Included = false;
-            Eq("由於好好吃", Overlay.ProposedText("由於好好吃", changes), "excluded change leaves the sentence");
+            Eq("由於‹1›好好吃", Overlay.ProposedText("由於好好吃", changes), "excluded change leaves the sentence but marks the span with its row number");
         }
     }
 
@@ -516,7 +626,52 @@ namespace Jevboard.Tests
             C("他每天搭公車上班。", "公車", "公扯", "車", "扯", "徹", "撤"),
             C("記得按時吃藥。", "藥", "要", "耀", "鑰", "曜", "躍"),
             C("這家店賣新鮮的水果。", "賣", "麥", "脈", "邁"),
-            C("學生們都在認真聽課。", "認真", "認針", "真", "針", "珍", "偵", "斟") };
+            C("學生們都在認真聽課。", "認真", "認針", "真", "針", "珍", "偵", "斟"),
+            // 語境決定：同一組同音字，兩句各自正確，只有上下文能分辨
+            C("做愛要戴保險套。", "戴", "帶", "待", "代", "袋", "貸"),
+            C("出門要帶保險套。", "帶", "戴", "待", "代", "袋", "貸"),
+            C("太陽很大，記得戴帽子。", "戴", "帶", "待", "代", "袋", "貸"),
+            C("山上會冷，記得帶外套。", "帶", "戴", "待", "代", "袋", "貸"),
+            C("這台電腦太舊了，它該換了。", "它", "他", "她", "牠", "塔", "踏"),
+            C("弟弟回來了，他餓了。", "他", "它", "她", "牠", "塔", "踏"),
+            C("我下午有三堂課。", "課", "顆", "克", "刻", "客", "恪"),
+            C("我吃了一顆蘋果。", "顆", "課", "克", "刻", "客", "恪"),
+            C("這件事很麻煩。", "事", "是", "試", "市", "視", "式"),
+            C("他是我的老闆。", "是", "事", "試", "市", "視", "式"),
+            C("讓我試試看。", "試", "是", "事", "市", "視", "式"),
+            C("他長得像媽媽。", "像", "向", "象", "相", "項", "巷"),
+            C("請向右轉。", "向", "像", "象", "相", "項", "巷"),
+            C("車站離這裡很近。", "近", "進", "盡", "晉", "禁", "勁"),
+            C("送你一枝玫瑰。", "枝", "支", "隻", "之", "知", "脂"),
+            C("請回覆這封信。", "回覆", "回復", "複", "付", "富", "負"),
+            C("這是紀念品。", "紀念", "記念", "計", "技", "既", "季"),
+            C("這個計畫很重要。", "計畫", "記畫", "紀", "技", "既", "季"),
+            C("我經過公園。", "經過", "精過", "驚", "晶", "京", "鯨"),
+            C("他今天精神很好。", "精神", "經神", "驚", "晶", "京", "鯨"),
+            C("氣球爆了。", "爆", "報", "抱", "豹", "暴", "曝"),
+            C("下週一要交報告。", "報告", "爆告", "抱", "豹", "暴", "曝"),
+            C("下午三點要開會。", "開會", "開繪", "惠", "慧", "匯", "彙"),
+            C("她很擅長繪畫。", "繪畫", "會畫", "惠", "慧", "匯", "彙"),
+            C("這個問題很難。", "問題", "問提", "堤", "啼", "蹄", "緹"),
+            C("他提出一個好建議。", "提出", "題出", "堤", "啼", "蹄", "緹"),
+            C("我要買兩張票。", "票", "漂", "瞟", "驃"),
+            C("她今天很漂亮。", "漂亮", "票亮", "瞟", "驃"),
+            C("下班後放鬆一下。", "放鬆", "放松", "嵩", "淞", "凇"),
+            C("山上有很多松樹。", "松樹", "鬆樹", "嵩", "淞", "凇"),
+            C("我喜歡吃餅乾。", "餅乾", "餅干", "甘", "杆", "肝", "竿"),
+            C("請不要干擾我。", "干擾", "乾擾", "甘", "杆", "肝", "竿"),
+            C("她是古代的皇后。", "皇后", "皇後", "候", "厚", "吼", "逅"),
+            C("吃完飯之後去散步。", "之後", "之后", "候", "厚", "吼", "逅"),
+            C("我們明天見面。", "見面", "見麵", "緬", "勉", "免", "眠"),
+            C("遠方有一座山。", "座", "坐", "做", "作", "昨", "佐"),
+            C("請坐，不要客氣。", "坐", "座", "做", "作", "昨", "佐"),
+            C("公司有一百位員工。", "員工", "原工", "元", "園", "圓", "源"),
+            C("這是失敗的原因。", "原因", "員因", "元", "園", "圓", "源"),
+            C("這本書一百元。", "元", "員", "原", "園", "圓", "源"),
+            C("我們去公園散步。", "公園", "公圓", "員", "原", "元", "源"),
+            C("桌子是圓形的。", "圓形", "員形", "原", "元", "園", "源"),
+            C("她戴了一條項鍊。", "項鍊", "項練", "戀", "煉", "鏈", "鍊"),
+            C("他捐了一億元。", "億", "意", "憶", "易", "異", "義") };
 
         public static void Run()
         {
@@ -572,6 +727,7 @@ namespace Jevboard.Tests
                     StringBuilder sb = new StringBuilder("      round " + round + ":");
                     foreach (JevClient.Question q in questions)
                     {
+                        if (q.Id.EndsWith("m")) continue;
                         JevClient.Answer a; if (!answers.TryGetValue(q.Id, out a) || !a.Ok) continue;
                         double p, keep; a.Probabilities.TryGetValue(a.Choice, out p); a.Probabilities.TryGetValue(q.KeepId, out keep);
                         if (a.Choice == q.KeepId) continue;
@@ -606,10 +762,18 @@ namespace Jevboard.Tests
             s.Positions.Add(new Position { Offset = 4, Items = new List<string> { "是", "事", "市", "試", "視", "式", "世", "適", "釋" } });
             s.Positions.Add(new Position { Offset = 5, Items = new List<string> { "我", "婐" } });
             s.Positions.Add(new Position { Offset = 6, Items = new List<string> { "的", "得", "地", "德", "底" } });
-            s.Positions.Add(new Position { Offset = 7, Items = new List<string> { "羅", "蘿", "螺", "邏", "囉", "鑼", "騾", "籮", "蘿蔔" } });
+            s.Positions.Add(new Position { Offset = 7, Items = new List<string> { "羅密歐", "羅", "蘿", "螺", "邏", "囉", "鑼", "騾", "籮" } });
             s.Positions.Add(new Position { Offset = 8, Items = new List<string> { "密", "蜜", "祕", "秘", "泌", "覓", "謐", "冪", "蜜蜂" } });
             s.Positions.Add(new Position { Offset = 9, Items = new List<string> { "歐", "鷗", "甌", "毆", "謳", "區", "偶", "藕" } });
             Whole(s, "我愛你你是我的羅密歐", "音譯名＋性別");
+
+            // Two adjacent errors with no word candidate to rescue them: the IME gave 在是一次 for 再試一次 (reported in use).
+            s = new Snapshot();
+            s.Positions.Add(new Position { Offset = 0, Items = new List<string> { "在", "再", "載", "栽", "災", "宰" } });
+            s.Positions.Add(new Position { Offset = 1, Items = new List<string> { "是", "試", "事", "市", "視", "式", "世", "適" } });
+            s.Positions.Add(new Position { Offset = 2, Items = new List<string> { "一次", "一", "衣", "依", "醫", "伊" } });
+            s.Positions.Add(new Position { Offset = 3, Items = new List<string> { "次", "刺", "賜", "伺", "廁" } });
+            Whole(s, "再試一次", "相鄰兩錯");
         }
 
         static void Whole(Snapshot s, string expected, string label)

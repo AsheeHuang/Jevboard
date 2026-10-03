@@ -243,14 +243,16 @@ namespace Jevboard
         {
             List<Change> accepted = new List<Change>(), optional = new List<Change>();
             string baseText = s.Current;
+            string firstState = null; List<JevClient.Question> firstQuestions = null; Dictionary<string, JevClient.Answer> firstAnswers = null;
             for (int round = 1; round <= maxRounds; round++)
             {
                 Snapshot view = new Snapshot { Current = baseText, Context = s.Context, Positions = s.Positions };
                 string state;
                 List<JevClient.Question> questions = BuildQuestions(view, out state);
                 if (questions.Count == 0) break;
-                Dictionary<string, JevClient.Answer> answers = ask(state, questions);
+                Dictionary<string, JevClient.Answer> answers = AskBothOrders(ask, state, questions);
                 if (answers == null) return round == 1 ? null : Finish(accepted, optional);
+                if (round == 1) { firstState = state; firstQuestions = questions; firstAnswers = answers; }
                 List<Change> changes = Propose(view, questions, answers);
                 int included = 0;
                 foreach (Change c in changes)
@@ -261,7 +263,130 @@ namespace Jevboard
                 if (included == 0) break;
                 baseText = ApplyChanges(s.Current, accepted);
             }
+            if (accepted.Count == 0 && firstAnswers != null)
+            {
+                List<Change> pair = PairStage(s, firstState, firstQuestions, firstAnswers, ask);
+                if (pair != null) foreach (Change c in pair) Merge(accepted, c, s.Current);
+            }
             return Finish(accepted, optional);
+        }
+
+        // Jev penalises whichever option is listed first when the options are otherwise close: for 約會要戴保險套 the
+        // second slot took 0.9 whether it held 戴 or 帶, while clear cases (魷魚) are order-independent. Every question is
+        // therefore sent twice in one request, in the original and the reversed order, and the two distributions are
+        // averaged before anything is decided.
+        internal static Dictionary<string, JevClient.Answer> AskBothOrders(Func<string, List<JevClient.Question>, Dictionary<string, JevClient.Answer>> ask, string state, List<JevClient.Question> questions)
+        {
+            List<JevClient.Question> both = new List<JevClient.Question>(questions);
+            foreach (JevClient.Question q in questions)
+            {
+                JevClient.Question mirror = new JevClient.Question { Id = q.Id + "m", Offset = q.Offset, KeepId = q.KeepId, Instructions = q.Instructions };
+                for (int i = q.Options.Count - 1; i >= 0; i--) mirror.Options.Add(q.Options[i]);
+                both.Add(mirror);
+            }
+            Dictionary<string, JevClient.Answer> raw = ask(state, both);
+            if (raw == null) return null;
+            Dictionary<string, JevClient.Answer> merged = new Dictionary<string, JevClient.Answer>();
+            foreach (JevClient.Question q in questions)
+            {
+                JevClient.Answer a, b;
+                raw.TryGetValue(q.Id, out a); raw.TryGetValue(q.Id + "m", out b);
+                merged[q.Id] = Average(a, b);
+            }
+            return merged;
+        }
+
+        internal static JevClient.Answer Average(JevClient.Answer a, JevClient.Answer b)
+        {
+            bool okA = a != null && a.Ok, okB = b != null && b.Ok;
+            if (!okA && !okB) return new JevClient.Answer();
+            if (!okA) return b;
+            if (!okB) return a;
+            JevClient.Answer r = new JevClient.Answer { Ok = true, Confidence = (a.Confidence + b.Confidence) / 2 };
+            HashSet<string> ids = new HashSet<string>(a.Probabilities.Keys);
+            ids.UnionWith(b.Probabilities.Keys);
+            string best = null; double bestP = -1;
+            foreach (string id in ids)
+            {
+                double pa, pb; a.Probabilities.TryGetValue(id, out pa); b.Probabilities.TryGetValue(id, out pb);
+                double p = (pa + pb) / 2;
+                r.Probabilities[id] = p;
+                if (p > bestP) { bestP = p; best = id; }
+            }
+            r.Choice = best;
+            return r;
+        }
+
+        internal const double PairFloor = 0.15;   // an alternative this likely on its own is worth trying together with its neighbour
+
+        // Two wrong characters side by side (在是一次 for 再試一次) defeat per-position questions: neither 再是一次 nor
+        // 在試一次 reads well alone. When nothing was accepted, one more question compares the sentence as it stands
+        // with every position's best alternative applied alone and with each adjacent pair applied together.
+        internal static List<Change> PairStage(Snapshot s, string state, List<JevClient.Question> questions, Dictionary<string, JevClient.Answer> answers, Func<string, List<JevClient.Question>, Dictionary<string, JevClient.Answer>> ask)
+        {
+            List<Change> best = new List<Change>();
+            foreach (JevClient.Question q in questions)
+            {
+                JevClient.Answer a;
+                if (!answers.TryGetValue(q.Id, out a) || !a.Ok) continue;
+                if (InsideImeWord(s, q.Offset)) continue;   // a name or idiom the IME knows (羅密歐) is not second-guessed here
+                Position p = null;
+                foreach (Position candidate in s.Positions) if (candidate.Offset == q.Offset) { p = candidate; break; }
+                if (p == null) continue;
+                string bestId = null; double bestProb = 0;
+                foreach (KeyValuePair<string, double> kv in a.Probabilities)
+                    if (kv.Key != q.KeepId && kv.Key.StartsWith("c") && kv.Value > bestProb) { bestId = kv.Key; bestProb = kv.Value; }
+                if (bestId == null || bestProb < PairFloor) continue;
+                int idx = int.Parse(bestId.Substring(1)) - 1;
+                if (idx < 0 || idx >= p.Items.Count) continue;
+                string text = p.Items[idx];
+                if (q.Offset + text.Length > s.Current.Length) continue;
+                string replaced = s.Current.Substring(q.Offset, text.Length);
+                if (text == replaced || IsGenderSwap(text, replaced)) continue;
+                best.Add(new Change { Offset = q.Offset, Text = text, Replaced = replaced, Probability = bestProb });
+            }
+            if (best.Count < 2) return null;
+            JevClient.Question pairQuestion = new JevClient.Question { Id = "pair", Offset = -1, KeepId = "keep", Instructions = "以下各句是同一句話的幾種寫法，有些同時換了相鄰的兩個字（讀音都相同）。哪一句語意正確、通順，最可能是使用者想打的？" };
+            Dictionary<string, List<Change>> options = new Dictionary<string, List<Change>>();
+            HashSet<string> sentences = new HashSet<string>();
+            sentences.Add(s.Current);
+            pairQuestion.Options.Add(new KeyValuePair<string, string>("keep", s.Current));
+            for (int i = 0; i < best.Count; i++)
+            {
+                AddVariant(s, pairQuestion, options, sentences, "s" + i, new List<Change> { best[i] });
+                if (i + 1 < best.Count && best[i].End == best[i + 1].Offset) AddVariant(s, pairQuestion, options, sentences, "d" + i, new List<Change> { best[i], best[i + 1] });
+            }
+            if (options.Count == 0) return null;
+            Dictionary<string, JevClient.Answer> reply = AskBothOrders(ask, state, new List<JevClient.Question> { pairQuestion });
+            JevClient.Answer answer;
+            if (reply == null || !reply.TryGetValue("pair", out answer) || !answer.Ok || answer.Choice == "keep") return null;
+            double prob, keep; answer.Probabilities.TryGetValue(answer.Choice, out prob); answer.Probabilities.TryGetValue("keep", out keep);
+            if (prob < ProposeThreshold || prob < ProposeMargin * keep) return null;
+            List<Change> chosen;
+            if (!options.TryGetValue(answer.Choice, out chosen)) return null;
+            foreach (Change c in chosen) { c.Probability = prob; c.Included = true; }
+            return chosen;
+        }
+
+        // True when the IME converted this offset as part of a word of three or more characters (its first candidate at
+        // an earlier or the same offset spans it). Such words come from the IME's dictionary and are rarely homophone
+        // mistakes, unlike characters the IME converted one by one.
+        internal static bool InsideImeWord(Snapshot s, int offset)
+        {
+            foreach (Position p in s.Positions)
+            {
+                string first = p.Items[0];
+                if (first.Length >= 3 && p.Offset <= offset && offset < p.Offset + first.Length) return true;
+            }
+            return false;
+        }
+
+        static void AddVariant(Snapshot s, JevClient.Question q, Dictionary<string, List<Change>> options, HashSet<string> sentences, string id, List<Change> changes)
+        {
+            string sentence = ApplyChanges(s.Current, changes);
+            if (!sentences.Add(sentence)) return;
+            q.Options.Add(new KeyValuePair<string, string>(id, sentence));
+            options[id] = changes;
         }
 
         // Accepted rows first at each offset, then optional ones by probability; an optional row that duplicates an
