@@ -1,4 +1,0 @@
-{"kind":"environment","os_api":"RtlGetVersion","os_hresult":"0x00000000","major":10,"minor":0,"build":26200,"is_64bit_process":true,"allowed_pids":[999999],"required_title_prefix":"Jevboard IME Probe -","scope":"only the focused element of explicitly allowed synthetic host processes; no IME configuration changes or text writes","utc":"2026-10-02T11:16:16.6749059Z","probe_pid":42320}
-{"kind":"native_uia_init","coinitialize_hresult":"0x00000001","create_hresult":"0x00000000","utc":"2026-10-02T11:16:16.7113102Z","probe_pid":42320}
-{"kind":"sample","status":"foreground_outside_allowlist","utc":"2026-10-02T11:16:16.7123089Z","probe_pid":42320}
-{"kind":"probe_complete","seconds":0.0013599,"utc":"2026-10-02T11:16:16.7123089Z","probe_pid":42320}
