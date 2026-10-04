@@ -103,7 +103,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 | 1 到 9（主鍵盤或數字鍵盤） | 浮窗顯示建議時 | 切換該列是否套用。同一位置的候選互斥 |
 | Esc | 浮窗顯示時 | 關閉浮窗，不做任何修改 |
 | 其他按鍵、切換視窗、點擊其他位置 | 浮窗顯示或讀取中 | 取消本次操作，按鍵照常送交輸入法 |
-| Caps Lock 單按 | 任何時候 | 350 毫秒後照常切換中英。延遲用於判斷是否有第二下 |
+| Caps Lock 單按 | 中文模式 | 350 毫秒後照常切換中英。延遲用於判斷是否有第二下 |
 
 浮窗內容說明：
 
@@ -112,7 +112,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 - 下方每一列代表一處修改，依序顯示字位、原字、建議字與 Jev 給出的機率。實心標記表示會套用，空心表示可選。
 - 標題顯示修改數量，例如「Jev 建議修改 2 處，另有 1 個可選」或「Jev 沒有建議修改」。
 
-輸入法停在英數模式時，程式會在雙擊後先切回中文，結束後維持中文模式。句中含空白、標點或英文時，字位計算不受影響。
+輸入法在英數模式時，Jevboard 不攔截 Caps Lock，按鍵立即生效、沒有延遲。組字中夾了英文、停在英數模式時，請先按 Shift 切回中文再雙擊。句中含空白、標點或英文時，字位計算不受影響。
 
 ## 運作原理
 
@@ -205,9 +205,8 @@ key 存於 `%LOCALAPPDATA%\Jevboard\key.bin`，以 Windows DPAPI 使用者範圍
 
 | 症狀 | 可能原因 |
 | --- | --- |
-| 雙擊沒有反應 | 檢查日誌是否有 `caps lock passed through: …`。`IME closed` 表示該視窗未啟用輸入法，`keyboard layout 0x0409` 表示目前是英文鍵盤。沒有任何紀錄表示程式未執行或未啟用。 |
+| 雙擊沒有反應 | 檢查日誌是否有 `caps lock passed through: …`。`IME closed` 表示該視窗未啟用輸入法，`IME in English mode` 表示輸入法在英數模式，`keyboard layout 0x0409` 表示目前是英文鍵盤。沒有任何紀錄表示程式未執行或未啟用。 |
 | 「沒有偵測到注音組字」 | 當時沒有未定稿的組字（已按過 Enter），或輸入法在該欄位不提供候選。 |
-| 「輸入法還在英數模式」 | 程式送出 Caps Lock 與 Shift 後仍無法切回中文。請手動切回中文後再雙擊。 |
 | 「AI 暫不可用（http 401）」 | key 錯誤或已過期，請在系統匣「設定…」重新輸入。 |
 | 建議句與目前句不同，但原句沒有錯字 | 原生 EDIT 的「目前」是重建的，可能與實際內容不同。套用以字為單位，不會因此套錯。 |
 | 建置時找不到 csc.exe | 需要 Windows 內建的 .NET Framework 4.x，路徑為 `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe`。 |

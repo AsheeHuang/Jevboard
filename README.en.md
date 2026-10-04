@@ -105,7 +105,7 @@ To uninstall, exit Jevboard from the tray and delete the repository folder and `
 | 1 to 9 (main row or numpad) | While the overlay shows suggestions | Toggle that row. Candidates at the same position are mutually exclusive. |
 | Esc | While the overlay is shown | Close the overlay without changes |
 | Any other key, switching windows, clicking elsewhere | While the overlay is shown or reading is in progress | Cancel. The key goes to the IME as usual. |
-| Caps Lock once | Any time | Toggles Chinese and English after 350 ms. The delay is how Jevboard detects a second press. |
+| Caps Lock once | Chinese mode | Toggles Chinese and English after 350 ms. The delay is how Jevboard detects a second press. |
 
 The overlay shows the following:
 
@@ -114,7 +114,7 @@ The overlay shows the following:
 - Each row below is one change and shows the position, the original character, the suggested character, and Jev's probability. A filled badge means the change will be applied. An outlined badge means it is optional.
 - The title shows the number of changes, for example 「Jev 建議修改 2 處，另有 1 個可選」 (Jev suggests 2 changes, 1 optional) or 「Jev 沒有建議修改」 (Jev suggests no changes).
 
-If the IME is in English mode, Jevboard switches it to Chinese after the double-tap and leaves it in Chinese mode when done. Spaces, punctuation, and English text in the sentence do not affect position counting.
+When the IME is in English mode, Jevboard does not intercept Caps Lock, so the key takes effect immediately. If a composition ends in English and the IME is still in English mode, press Shift to switch back to Chinese before double-tapping. Spaces, punctuation, and English text in the sentence do not affect position counting.
 
 ## How it works
 
@@ -207,9 +207,8 @@ Every key that Jevboard sends carries a marker, and the hook passes those keys t
 
 | Symptom | Likely cause |
 | --- | --- |
-| Double-tap does nothing | Check the log for `caps lock passed through: …`. `IME closed` means the IME is off in that window. `keyboard layout 0x0409` means the active layout is English. No log entry means Jevboard is not running or not enabled. |
+| Double-tap does nothing | Check the log for `caps lock passed through: …`. `IME closed` means the IME is off in that window. `IME in English mode` means the IME is in English mode. `keyboard layout 0x0409` means the active layout is English. No log entry means Jevboard is not running or not enabled. |
 | 沒有偵測到注音組字 (no Bopomofo composition detected) | There was no uncommitted composition (Enter was already pressed), or the IME does not offer candidates in that field. |
-| 輸入法還在英數模式 (IME is still in English mode) | Jevboard sent Caps Lock and Shift but could not switch back to Chinese. Switch to Chinese by hand and double-tap again. |
 | AI 暫不可用（http 401） (AI unavailable) | The key is wrong or expired. Enter it again under 設定… (Settings) in the tray menu. |
 | The suggested sentence differs from the current one, but nothing was wrong | In native EDIT controls the current sentence is rebuilt and may not match what is on screen. Applying works per character and does not apply the wrong change. |
 | The build cannot find csc.exe | You need .NET Framework 4.x, built into Windows, at `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe`. |

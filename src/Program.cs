@@ -94,9 +94,9 @@ namespace Jevboard
             enableItem.Checked = Settings.Enabled;
         }
 
-        // Null when enabled, another process has a focused window, and Microsoft Bopomofo is the open IME there
-        // (Chinese or English mode: Caps Lock toggles the two, so English mode is handled at trigger time);
-        // otherwise a short reason for the log (class names only, never content).
+        // Null when enabled, another process has a focused window, and Microsoft Bopomofo is open there in Chinese
+        // mode; otherwise a short reason for the log (class names only, never content). English mode passes Caps Lock
+        // through undelayed, at the cost of not triggering on a composition that ends in English.
         string NotApplicable()
         {
             if (!Settings.Enabled) return "disabled";
@@ -113,6 +113,7 @@ namespace Jevboard
             IntPtr ime = Native.ImmGetDefaultIMEWnd(focus);
             if (ime == IntPtr.Zero) return "no IME window for " + cls;
             if (Native.Send(ime, Native.WM_IME_CONTROL, Native.IMC_GETOPENSTATUS, 0) == 0) return "IME closed in " + cls;
+            if (!InChineseMode(focus)) return "IME in English mode in " + cls;
             return null;
         }
 
@@ -120,28 +121,6 @@ namespace Jevboard
         {
             IntPtr ime = Native.ImmGetDefaultIMEWnd(focus);
             return ime != IntPtr.Zero && (Native.Send(ime, Native.WM_IME_CONTROL, Native.IMC_GETCONVERSIONMODE, 0) & Native.IME_CMODE_NATIVE) != 0;
-        }
-
-        // Microsoft Bopomofo is in English mode either because Caps Lock is on or because Shift toggled it. Undo
-        // whichever applies, with the IME's own keys; the user stays in Chinese mode afterwards. Worker thread.
-        static bool EnsureChineseMode(IntPtr focus, int gen)
-        {
-            if (InChineseMode(focus)) return true;
-            if (Native.CapsLockOn())
-            {
-                Native.Tap(Native.VK_CAPITAL);
-                Log.Write("gen " + gen + " IME in English mode with Caps Lock on: released Caps Lock");
-                if (WaitForChineseMode(focus)) return true;
-            }
-            Native.Tap(Native.VK_SHIFT);
-            Log.Write("gen " + gen + " IME still in English mode: sent Shift to toggle");
-            return WaitForChineseMode(focus);
-        }
-
-        static bool WaitForChineseMode(IntPtr focus)
-        {
-            for (int i = 0; i < 12; i++) { Thread.Sleep(50); if (InChineseMode(focus)) return true; }
-            return false;
         }
 
         static bool TargetUnchanged(Snapshot s)
@@ -171,7 +150,8 @@ namespace Jevboard
             Worker(delegate
             {
                 Func<bool> aborted = delegate { return gen != generation; };
-                if (!EnsureChineseMode(focus, gen)) { overlay.BeginInvoke(new Action(delegate { busy = false; if (gen == generation) Fail("輸入法還在英數模式，請先切回中文再雙擊"); })); return; }
+                // The mode was checked at the first tap; Shift between the two taps can still switch it.
+                if (!InChineseMode(focus)) { overlay.BeginInvoke(new Action(delegate { busy = false; if (gen == generation) Fail("輸入法在英數模式，請先切回中文再雙擊"); })); return; }
                 IntPtr popup = Candidates.OpenList(caretScreen, aborted);
                 List<Position> positions = popup == IntPtr.Zero ? null : Candidates.Harvest(popup, aborted);
                 overlay.BeginInvoke(new Action(delegate { busy = false; OnHarvested(gen, popup, positions); }));
