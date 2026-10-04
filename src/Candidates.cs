@@ -383,6 +383,23 @@ namespace Jevboard
             return tail;
         }
 
+        // The context sent to Jev: the committed text in front of the composition, at most maxChars of it. `committed`
+        // is the text pattern's answer when the composition was resolved from it and wins; otherwise `triggerText` is
+        // what ReadContext returned at trigger time, with a trailing copy of the composition stripped. A RichEdit host
+        // (Notepad on Windows 11, class RichEditD2DPT) keeps the uncommitted composition in its buffer, so that text
+        // ended with the composition itself, and sent as "text typed before this sentence" it anchored Jev on the
+        // current conversion: 想在去一次芮氏 kept 芮氏 at 0.41–0.72 with it and at 0.01 without.
+        public static string ContextFor(string triggerText, string committed, List<Position> positions, int maxChars)
+        {
+            string text = committed;
+            if (text == null)
+            {
+                string rest;
+                text = ResolveCurrent(positions, triggerText, out rest) != null ? rest : (triggerText ?? "");
+            }
+            return text.Length > maxChars ? text.Substring(text.Length - maxChars) : text;
+        }
+
         // Selects each change with the IME's digit key after re-opening that position's list and locating the text
         // on the live page (the IME re-ranks after every pick, so stored indexes are never reused).
         // Returns null on success, else a user-facing reason. Runs on a worker thread.

@@ -122,6 +122,15 @@ namespace Jevboard.Tests
             mixed.Positions.Add(new Position { Offset = 4, Items = new List<string> { "好", "郝" } });
             Eq("我 OK好", Candidates.ResolveCurrent(mixed.Positions, "我 OK好", out context), "spaces and letters come through");
 
+            // Notepad (RichEdit) hands back the composition as part of the text read at trigger time; it must never be
+            // sent as context (as 前面已輸入的文字 it anchored Jev on the current conversion: 瑞士 0.98 → 0.44).
+            Eq("", Candidates.ContextFor("做愛要帶保險套", null, s.Positions, 40), "trigger-time text that is just the composition gives no context");
+            Eq("昨天說過，", Candidates.ContextFor("昨天說過，做愛要帶保險套", null, s.Positions, 40), "the composition is stripped from the trigger-time text");
+            Eq("這是別的文字一二三四五六七", Candidates.ContextFor("這是別的文字一二三四五六七", null, s.Positions, 40), "committed text that is not the composition is kept (classic EDIT)");
+            Eq("昨天說過，", Candidates.ContextFor("做愛要帶保險套", "昨天說過，", s.Positions, 40), "the text pattern's committed part wins over the trigger-time text");
+            Eq("", Candidates.ContextFor(null, null, s.Positions, 40), "no text at all gives no context");
+            Eq("二三四五", Candidates.ContextFor("一二三四五", "一二三四五", s.Positions, 4), "only the last maxChars are kept");
+
             // With the real current text the keep option is the matching candidate, not c1.
             s.Current = "做愛要帶保險套";
             string state; List<JevClient.Question> qs = App.BuildQuestions(s, out state);

@@ -190,7 +190,7 @@ namespace Jevboard
             string resolved = Candidates.ResolveCurrent(positions, Candidates.ReadBeforeCaret(current.Focus), out committed);
             current.Current = resolved ?? Candidates.CurrentText(positions);
             current.Exact = resolved != null;
-            if (resolved != null && current.Context.Length == 0 && committed.Length > 0) current.Context = committed.Substring(Math.Max(0, committed.Length - 40));
+            current.Context = Candidates.ContextFor(current.Context, resolved != null ? committed : null, positions, 40);
             Log.Write("gen " + gen + " harvested chars=" + positions.Count + " current=" + (resolved != null ? "text pattern" : "first candidates") + " context=" + current.Context.Length);
             overlay.MoveTo(new Point(current.PopupRect.left, current.PopupRect.top));
             overlay.ShowSentence(current.Current, "Jev 分析整句中…");
