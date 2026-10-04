@@ -16,6 +16,7 @@ Jevboard 是一個 Windows 系統匣工具，用 [Jev](https://docs.typesafe.ai/
 ## 目錄
 
 - [背景](#背景)
+- [定位與限制](#定位與限制)
 - [功能](#功能)
 - [系統需求](#系統需求)
 - [安裝](#安裝)
@@ -34,6 +35,12 @@ Jevboard 是一個 Windows 系統匣工具，用 [Jev](https://docs.typesafe.ai/
 
 Jev 是選擇題型的決策 API，對每個選項回傳機率，符合「只能從固定候選中挑選」的需求。Jev 處理中文同音字的準確度是這個 POC 要驗證的問題，結果記錄在 [docs/evaluation.md](docs/evaluation.md)。
 
+## 定位與限制
+
+Jevboard 建立在微軟注音之上，不是獨立的輸入法。原生輸入法可以在內部直接存取組字與候選，外部程式做不到，只能用輸入法自己的按鍵逐字開啟候選窗，再透過 UI Automation 讀取畫面上的候選。套用修改時也一樣，要重新開啟候選窗並按數字鍵選字。每次判斷都得把整句走過一遍，每字約 0.1 秒，句子越長越慢，候選窗也會在走訪時逐字閃動。
+
+這個專案是概念驗證，目的是證明「只從輸入法提供的候選中挑選、以整句語意重新選字」這個做法可行，而不是做出日常使用的產品。若要達到實用的效率，這個流程應該實作在輸入法內部。希望未來能有基於原生架構（TSF）的注音輸入法採用類似的做法。
+
 ## 功能
 
 - 不替換輸入法。所有選字最終都透過微軟注音自己的候選與數字鍵完成，輸入法的使用者學習照常運作。
@@ -45,7 +52,7 @@ Jev 是選擇題型的決策 API，對每個選項回傳機率，符合「只能
 ## 系統需求
 
 | 項目 | 需求 |
-|---|---|
+| --- | --- |
 | 作業系統 | Windows 10 / 11，x64（開發環境為 Windows 11 26200） |
 | 輸入法 | Windows 內建的微軟注音（TSF 版） |
 | 執行環境 | .NET Framework 4.8（Windows 10/11 內建） |
@@ -57,7 +64,7 @@ Jev 是選擇題型的決策 API，對每個選項回傳機率，符合「只能
 ### 1. 取得原始碼並建置
 
 ```bash
-git clone <this-repo-url> Jevboard
+git clone git@github.com:AsheeHuang/Jevboard.git
 cd Jevboard
 powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ```
@@ -90,7 +97,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ## 使用方式
 
 | 按鍵 | 時機 | 動作 |
-|---|---|---|
+| --- | --- | --- |
 | Caps Lock 連按兩下 | 組字中（尚未按 Enter） | 讀取整句並送交 Jev |
 | Tab | 浮窗顯示建議時 | 套用所有勾選的修改 |
 | 1 到 9（主鍵盤或數字鍵盤） | 浮窗顯示建議時 | 切換該列是否套用。同一位置的候選互斥 |
@@ -197,7 +204,7 @@ key 存於 `%LOCALAPPDATA%\Jevboard\key.bin`，以 Windows DPAPI 使用者範圍
 ## 疑難排解
 
 | 症狀 | 可能原因 |
-|---|---|
+| --- | --- |
 | 雙擊沒有反應 | 檢查日誌是否有 `caps lock passed through: …`。`IME closed` 表示該視窗未啟用輸入法，`keyboard layout 0x0409` 表示目前是英文鍵盤。沒有任何紀錄表示程式未執行或未啟用。 |
 | 「沒有偵測到注音組字」 | 當時沒有未定稿的組字（已按過 Enter），或輸入法在該欄位不提供候選。 |
 | 「輸入法還在英數模式」 | 程式送出 Caps Lock 與 Shift 後仍無法切回中文。請手動切回中文後再雙擊。 |

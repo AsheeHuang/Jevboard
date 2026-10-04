@@ -18,6 +18,7 @@ The user interface is in Traditional Chinese, and the design notes in `docs/` ar
 ## Contents
 
 - [Background](#background)
+- [Scope and limitations](#scope-and-limitations)
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -36,6 +37,12 @@ Microsoft Bopomofo converts a sentence using only local context, so it often pic
 
 Jev is a decision API for multiple-choice questions. It returns a probability for each option, which fits the requirement of choosing from a fixed candidate list. How well Jev handles Chinese homophones is the question this POC tests. The results are in [docs/evaluation.md](docs/evaluation.md).
 
+## Scope and limitations
+
+Jevboard runs on top of Microsoft Bopomofo. It is not an IME of its own. A native IME can read its composition and candidates internally, but an external program cannot. Jevboard has to open the candidate window at each position with the IME's own keys and read the candidates through UI Automation. Applying a change works the same way, by reopening the candidate window and pressing a digit key. Every request walks the whole sentence at about 0.1 s per character, so longer sentences take longer, and the candidate window flickers during the walk.
+
+This project is a proof of concept. Its goal is to show that re-selecting a whole sentence by meaning, while choosing only among the IME's own candidates, works in practice. It is not meant as a daily-use product. To be efficient, this process belongs inside the IME itself. I hope a future Bopomofo IME built natively on TSF adopts a similar approach.
+
 ## Features
 
 - The IME stays in place. Every selection is made through Microsoft Bopomofo's own candidates and digit keys, so the IME's user learning keeps working.
@@ -47,7 +54,7 @@ Jev is a decision API for multiple-choice questions. It returns a probability fo
 ## Requirements
 
 | Item | Requirement |
-|---|---|
+| --- | --- |
 | Operating system | Windows 10 or 11, x64 (developed on Windows 11 26200) |
 | IME | Microsoft Bopomofo, built into Windows (TSF version) |
 | Runtime | .NET Framework 4.8, built into Windows 10 and 11 |
@@ -59,7 +66,7 @@ Jev is a decision API for multiple-choice questions. It returns a probability fo
 ### 1. Get the source and build
 
 ```bash
-git clone <this-repo-url> Jevboard
+git clone git@github.com:AsheeHuang/Jevboard.git
 cd Jevboard
 powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ```
@@ -92,7 +99,7 @@ To uninstall, exit Jevboard from the tray and delete the repository folder and `
 ## Usage
 
 | Key | When | Action |
-|---|---|---|
+| --- | --- | --- |
 | Caps Lock twice | While composing (before Enter) | Read the sentence and send it to Jev |
 | Tab | While the overlay shows suggestions | Apply all selected changes |
 | 1 to 9 (main row or numpad) | While the overlay shows suggestions | Toggle that row. Candidates at the same position are mutually exclusive. |
@@ -199,7 +206,7 @@ Every key that Jevboard sends carries a marker, and the hook passes those keys t
 ## Troubleshooting
 
 | Symptom | Likely cause |
-|---|---|
+| --- | --- |
 | Double-tap does nothing | Check the log for `caps lock passed through: …`. `IME closed` means the IME is off in that window. `keyboard layout 0x0409` means the active layout is English. No log entry means Jevboard is not running or not enabled. |
 | 沒有偵測到注音組字 (no Bopomofo composition detected) | There was no uncommitted composition (Enter was already pressed), or the IME does not offer candidates in that field. |
 | 輸入法還在英數模式 (IME is still in English mode) | Jevboard sent Caps Lock and Shift but could not switch back to Chinese. Switch to Chinese by hand and double-tap again. |
