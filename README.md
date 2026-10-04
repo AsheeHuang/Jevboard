@@ -57,7 +57,7 @@ Jevboard 建立在微軟注音之上，不是獨立的輸入法。原生輸入�
 | 輸入法 | Windows 內建的微軟注音（TSF 版） |
 | 執行環境 | .NET Framework 4.8（Windows 10/11 內建） |
 | 建置工具 | Windows 內建的 `csc.exe`（`C:\Windows\Microsoft.NET\Framework64\v4.0.30319`），不需要 Visual Studio 或 .NET SDK |
-| 外部服務 | Jev API key（[申請方式](https://docs.typesafe.ai/introduction/quickstart)），模型為 `jev-latest` |
+| 外部服務 | Jev API key（[申請方式](https://console.typesafe.ai/home)），模型為 `jev-latest` |
 
 ## 安裝
 
