@@ -74,7 +74,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 ### 2. 首次設定
 
 1. 執行 `bin\Jevboard.exe`。程式沒有主視窗，只在系統匣顯示圖示。執行檔未簽章，首次執行時 SmartScreen 可能顯示警告。
-2. 在系統匣圖示上按右鍵，選「設定…」，貼上 Jev API key，勾選「啟用 Caps Lock 雙擊」，按「儲存」。程式以 Windows DPAPI 的使用者範圍加密保存 key，日誌中不會出現 key。
+2. 在系統匣圖示上按右鍵，選「設定…」，貼上 Jev API key，按「儲存」。儲存 key 的同時會啟用 Jevboard。程式以 Windows DPAPI 的使用者範圍加密保存 key，日誌中不會出現 key。
 3. 系統匣選單的「啟用」可暫停或恢復功能，「結束」關閉程式。同一時間只能執行一個實例。
 
 ### 3. 確認運作

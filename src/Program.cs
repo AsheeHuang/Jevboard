@@ -46,15 +46,14 @@ namespace Jevboard
             Font = new Font("Microsoft JhengHei UI", 10);
             Label label = new Label { Left = 16, Top = 18, Width = 370, Text = Settings.HasKey ? "Jev API key（已儲存；輸入新值可覆蓋）" : "Jev API key（尚未設定）" };
             TextBox key = new TextBox { Left = 16, Top = 44, Width = 370, UseSystemPasswordChar = true };
-            CheckBox enabled = new CheckBox { Left = 16, Top = 80, Width = 200, Text = "啟用 Caps Lock 雙擊", Checked = Settings.Enabled };
             Button save = new Button { Left = 286, Top = 76, Width = 100, Text = "儲存" };
             save.Click += delegate
             {
-                if (key.Text.Trim().Length > 0) { Settings.SaveKey(key.Text); key.Text = ""; label.Text = "Jev API key（已儲存；輸入新值可覆蓋）"; Log.Write("key saved"); }
-                Settings.Enabled = enabled.Checked; Log.Write("enabled=" + enabled.Checked);
+                // A newly saved key means the user wants Jevboard on; pausing lives in the tray menu.
+                if (key.Text.Trim().Length > 0) { Settings.SaveKey(key.Text); Settings.Enabled = true; key.Text = ""; label.Text = "Jev API key（已儲存；輸入新值可覆蓋）"; Log.Write("key saved, enabled"); }
                 Close();
             };
-            Controls.AddRange(new Control[] { label, key, enabled, save });
+            Controls.AddRange(new Control[] { label, key, save });
         }
     }
 

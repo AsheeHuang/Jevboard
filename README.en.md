@@ -76,7 +76,7 @@ A successful build prints the path to `bin\Jevboard.exe`. The build uses only th
 ### 2. First-time setup
 
 1. Run `bin\Jevboard.exe`. It has no main window and shows only a tray icon. The executable is unsigned, so SmartScreen may warn on first run.
-2. Right-click the tray icon, choose 設定… (Settings), paste your Jev API key, check 啟用 Caps Lock 雙擊 (enable Caps Lock double-tap), and click 儲存 (Save). Jevboard encrypts the key with Windows DPAPI in user scope and never writes it to the log.
+2. Right-click the tray icon, choose 設定… (Settings), paste your Jev API key, and click 儲存 (Save). Saving a key also enables Jevboard. Jevboard encrypts the key with Windows DPAPI in user scope and never writes it to the log.
 3. The 啟用 (Enabled) item in the tray menu pauses or resumes Jevboard, and 結束 (Exit) closes it. Only one instance can run at a time.
 
 ### 3. Check that it works
