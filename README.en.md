@@ -59,7 +59,7 @@ This project is a proof of concept. Its goal is to show that re-selecting a whol
 | IME | Microsoft Bopomofo, built into Windows (TSF version) |
 | Runtime | .NET Framework 4.8, built into Windows 10 and 11 |
 | Build tool | `csc.exe`, built into Windows (`C:\Windows\Microsoft.NET\Framework64\v4.0.30319`). Visual Studio and the .NET SDK are not needed. |
-| External service | A Jev API key ([how to get one](https://docs.typesafe.ai/introduction/quickstart)). The model is `jev-latest`. |
+| External service | A Jev API key ([how to get one](https://console.typesafe.ai/home)). The model is `jev-latest`. |
 
 ## Installation
 
