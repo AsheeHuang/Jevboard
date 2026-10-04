@@ -6,7 +6,9 @@ Jevboard 是一個 Windows 系統匣工具，用 [Jev](https://docs.typesafe.ai/
 
 使用者照常以微軟注音輸入，在按 Enter 之前連按兩下 Caps Lock。Jevboard 讀取輸入法在每個字位提供的候選，請 Jev 判斷哪些位置選錯，並在游標旁的浮窗列出建議。按 Tab 套用，按 Esc 取消。
 
-![Jevboard 浮窗。上方是目前句與建議句，下方每處修改一列，以數字鍵切換，Tab 套用](docs/overlay-preview.png)
+[![Jevboard 示範：打字、連按兩下 Caps Lock、Jev 給出建議、按 Tab 套用](docs/jevboard-demo.gif)](docs/jevboard-demo.mp4)
+
+22 秒的示範。點圖可看有音樂與音效的 [MP4 版本](docs/jevboard-demo.mp4)。打字部分以三倍速播放，讀取候選、等待 Jev 與套用都是實際速度。
 
 ```
 輸入法結果：想在去一次芮氏
@@ -105,6 +107,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File build.ps1
 | 其他按鍵、切換視窗、點擊其他位置 | 浮窗顯示或讀取中 | 取消本次操作，按鍵照常送交輸入法 |
 | Caps Lock 單按 | 中文模式 | 350 毫秒後照常切換中英。延遲用於判斷是否有第二下 |
 
+![Jevboard 浮窗。上方是目前句與建議句，下方每處修改一列，以數字鍵切換，Tab 套用](docs/overlay-preview.png)
+
 浮窗內容說明：
 
 - 「目前」列是輸入法目前的轉換結果。
@@ -173,6 +177,8 @@ Jevboard/
     ├── how-it-works.md       運作原理與完整追蹤範例
     ├── prompt-design.md      Jev prompt 與判斷規則
     ├── evaluation.md         評估方法、結果與已知失敗
+    ├── jevboard-demo.mp4     示範影片，有音樂與音效
+    ├── jevboard-demo.gif     README 開頭的動態預覽
     └── overlay-preview.png
 ```
 

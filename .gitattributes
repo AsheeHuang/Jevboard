@@ -1,3 +1,5 @@
 * text=auto
 *.png binary
 *.exe binary
+*.gif binary
+*.mp4 binary

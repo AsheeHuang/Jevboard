@@ -6,7 +6,9 @@ Jevboard is a Windows tray utility that uses [Jev](https://docs.typesafe.ai/) to
 
 You type with Microsoft Bopomofo as usual and double-tap Caps Lock before pressing Enter. Jevboard reads the candidates the IME offers at each position, asks Jev which positions are wrong, and lists the suggestions in an overlay next to the cursor. Press Tab to apply or Esc to cancel.
 
-![The Jevboard overlay. The current and suggested sentences are at the top, with one row per change below. Digit keys toggle a row and Tab applies.](docs/overlay-preview.png)
+[![Jevboard demo: typing, double-tapping Caps Lock, Jev's suggestion, and Tab to apply](docs/jevboard-demo.gif)](docs/jevboard-demo.mp4)
+
+A 22-second demo. Click it for the [MP4 version](docs/jevboard-demo.mp4) with music and sound effects. Typing plays at 3x speed. Reading the candidates, waiting for Jev, and applying the changes play at real speed.
 
 ```
 IME result:  想在去一次芮氏
@@ -107,6 +109,8 @@ To uninstall, exit Jevboard from the tray and delete the repository folder and `
 | Any other key, switching windows, clicking elsewhere | While the overlay is shown or reading is in progress | Cancel. The key goes to the IME as usual. |
 | Caps Lock once | Chinese mode | Toggles Chinese and English after 350 ms. The delay is how Jevboard detects a second press. |
 
+![The Jevboard overlay. The current and suggested sentences are at the top, with one row per change below. Digit keys toggle a row and Tab applies.](docs/overlay-preview.png)
+
 The overlay shows the following:
 
 - The 目前 (Current) line is the IME's current conversion.
@@ -175,6 +179,8 @@ Jevboard/
     ├── how-it-works.md       How it works, with a full trace example
     ├── prompt-design.md      Jev prompt and decision rules
     ├── evaluation.md         Evaluation method, results, and known failures
+    ├── jevboard-demo.mp4     Demo video with music and sound effects
+    ├── jevboard-demo.gif     Animated preview at the top of the README
     └── overlay-preview.png
 ```
 
